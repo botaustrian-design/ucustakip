@@ -71,7 +71,6 @@
             padding: 10px;
         }
 
-        /* Uçuş Kartları Listesi */
         .flight-list {
             display: flex;
             flex-direction: column;
@@ -114,7 +113,7 @@
             <button onclick="filterFlights()">Ara</button>
         </div>
 
-        <div id="status-msg">Avrupa üzerindeki uçaklar yükleniyor...</div>
+        <div id="status-msg">Uçaklar yükleniyor, lütfen bekleyin...</div>
 
         <div class="flight-list" id="list-container"></div>
     </div>
@@ -123,10 +122,9 @@
         let allEuropeanFlights = [];
 
         function fetchEuropeanFlights() {
-            // Sadece Avrupa koordinatları (Güney, Kuzey, Batı, Doğu)
             const euroBBox = 'lamin=35&lamax=71&lomin=-25&lomax=45';
             const targetUrl = `https://opensky-network.org/api/states/all?${euroBBox}`;
-            const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl);
+            const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetUrl);
 
             fetch(proxyUrl)
                 .then(res => res.json())
@@ -138,10 +136,10 @@
 
                     allEuropeanFlights = data.states;
                     document.getElementById('status-msg').innerText = `Avrupa'da aktif ${allEuropeanFlights.length} uçuş bulundu.`;
-                    displayFlights(allEuropeanFlights.slice(0, 30)); // İlk 30 uçağı göster
+                    displayFlights(allEuropeanFlights.slice(0, 30));
                 })
                 .catch(err => {
-                    document.getElementById('status-msg').innerText = 'Bağlantı hatası oluştu.';
+                    document.getElementById('status-msg').innerText = 'Bağlantı hatası oluştu. Sunucu yanıt vermedi.';
                 });
         }
 
@@ -192,7 +190,6 @@
             displayFlights(filtered);
         }
 
-        // Sayfa açıldığında veriyi çek
         fetchEuropeanFlights();
     </script>
 </body>
