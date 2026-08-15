@@ -3,14 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Avrupa Uçuş Takip</title>
+    <title>AeroRadar Pro</title>
     <style>
+        :root {
+            --bg-primary: #070d1a;
+            --bg-secondary: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.65);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --accent-blue: #38bdf8;
+            --accent-green: #34d399;
+            --accent-gold: #fbbf24;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
         body {
             margin: 0;
-            padding: 15px;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: white;
+            padding: 16px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-main);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -18,173 +30,445 @@
             box-sizing: border-box;
         }
 
-        .container {
+        .app-container {
             width: 100%;
-            max-width: 500px;
+            max-width: 480px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 16px;
         }
 
-        h2 { text-align: center; margin: 0; color: #60a5fa; font-size: 1.4em; }
-        .subtitle { text-align: center; font-size: 0.85em; color: #94a3b8; margin-bottom: 5px; }
-
-        .search-box {
-            display: flex;
-            gap: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 10px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-        }
-
-        input {
-            flex: 1;
-            padding: 12px 15px;
-            border-radius: 10px;
-            border: none;
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            font-size: 1em;
-            outline: none;
-        }
-
-        input::placeholder { color: rgba(255, 255, 255, 0.6); }
-
-        button {
-            padding: 0 20px;
-            border-radius: 10px;
-            border: none;
-            background: #3b82f6;
-            color: white;
-            font-weight: bold;
-            font-size: 1em;
-            cursor: pointer;
-        }
-
-        button:active { background: #2563eb; }
-
-        #status-msg {
+        .app-header {
             text-align: center;
-            opacity: 0.8;
-            font-size: 0.9em;
-            padding: 5px;
-            color: #34d399;
+            padding-bottom: 5px;
         }
 
-        .flight-list {
+        .app-header h1 {
+            margin: 0;
+            font-size: 1.5em;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(90deg, #60a5fa, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .app-header p {
+            margin: 4px 0 0 0;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .search-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 14px 16px 14px 44px;
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            color: var(--text-main);
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            width: 18px;
+            height: 18px;
+            fill: var(--text-muted);
+        }
+
+        .status-banner {
+            font-size: 0.85rem;
+            color: var(--accent-green);
+            background: rgba(52, 211, 153, 0.08);
+            border: 1px solid rgba(52, 211, 153, 0.2);
+            padding: 8px 12px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-green);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent-green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+
+        .flight-feed {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
             max-height: 65vh;
             overflow-y: auto;
+            padding-right: 2px;
         }
 
         .flight-card {
-            background: rgba(255, 255, 255, 0.07);
-            backdrop-filter: blur(10px);
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        }
+
+        .flight-card:active {
+            transform: scale(0.98);
+            background: rgba(30, 41, 59, 0.9);
+            border-color: rgba(56, 189, 248, 0.3);
+        }
+
+        .airline-branding {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .airline-logo {
+            width: 44px;
+            height: 44px;
             border-radius: 12px;
-            padding: 12px 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.85rem;
+            color: white;
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.2), 0 4px 10px rgba(0,0,0,0.3);
+            flex-shrink: 0;
+        }
+
+        .flight-main-info h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-main);
+            letter-spacing: -0.2px;
+        }
+
+        .flight-main-info p {
+            margin: 3px 0 0 0;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .flight-metrics {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .metric-speed {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--accent-green);
+        }
+
+        .metric-altitude {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--accent-gold);
+        }
+
+        /* Modal / Detay Penceresi */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(3, 7, 18, 0.85);
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-card {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            width: 100%;
+            max-width: 420px;
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .modal-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+            margin-bottom: 16px;
+        }
+
+        .modal-title-area h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: var(--text-main);
+        }
+
+        .modal-title-area span {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .close-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: none;
+            color: var(--text-main);
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .close-btn:active { background: rgba(255, 255, 255, 0.2); }
+
+        .detail-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .detail-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 12px 16px;
+            border-radius: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .flight-info h4 { margin: 0 0 5px 0; color: #93c5fd; font-size: 1.05em; }
-        .flight-info p { margin: 0; font-size: 0.85em; color: #cbd5e1; }
-
-        .flight-stats {
-            text-align: right;
-            font-size: 0.9em;
+        .detail-item span {
+            font-size: 0.85rem;
+            color: var(--text-muted);
         }
 
-        .flight-stats div { color: #34d399; font-weight: bold; }
-        .flight-stats span { color: #fbbf24; font-size: 0.85em; }
+        .detail-item strong {
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+
+        .live-pulse-badge {
+            margin-top: 16px;
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            color: var(--accent-blue);
+            text-align: center;
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h2>Avrupa Hava Sahası</h2>
-        <div class="subtitle">Canlı Uçuş ve Hız/Yükseklik Takibi</div>
-
-        <div class="search-box">
-            <input type="text" id="flight-code" placeholder="Uçuş kodu ara (Örn: THY, DLH)..." onkeyup="filterFlights()">
-            <button onclick="filterFlights()">Ara</button>
+    <div class="app-container">
+        <div class="app-header">
+            <h1>AeroRadar Pro</h1>
+            <p>Avrupa Canlı Uçuş Takip Sistemi</p>
         </div>
 
-        <div id="status-msg">Avrupa'da aktif uçuşlar listeleniyor.</div>
+        <div class="search-wrapper">
+            <svg class="search-icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+            <input type="text" class="search-input" id="flight-code" placeholder="Uçuş kodu, havayolu veya rota ara..." onkeyup="filterFlights()">
+        </div>
 
-        <div class="flight-list" id="list-container"></div>
+        <div class="status-banner">
+            <div class="status-dot"></div>
+            <span id="status-text">Avrupa Hava Sahası: Senkronize ve Aktif</span>
+        </div>
+
+        <div class="flight-feed" id="feed-container"></div>
+    </div>
+
+    <!-- Detay Modal Ekranı -->
+    <div class="modal-overlay" id="flight-modal" onclick="if(event.target === this) closeModal()">
+        <div class="modal-card">
+            <div class="modal-top">
+                <div class="modal-title-area">
+                    <h2 id="modal-code">-</h2>
+                    <span id="modal-airline">-</span>
+                </div>
+                <button class="close-btn" onclick="closeModal()">✕</button>
+            </div>
+
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span>Güzergah</span>
+                    <strong id="modal-route">-</strong>
+                </div>
+                <div class="detail-item">
+                    <span>Uçak Modeli</span>
+                    <strong id="modal-model">-</strong>
+                </div>
+                <div class="detail-item">
+                    <span>Anlık Hız</span>
+                    <strong id="modal-speed" style="color:var(--accent-green);">-</strong>
+                </div>
+                <div class="detail-item">
+                    <span>Uçuş Yüksekliği</span>
+                    <strong id="modal-altitude" style="color:var(--accent-gold);">-</strong>
+                </div>
+                <div class="detail-item">
+                    <span>Hava Sahası Ülkesi</span>
+                    <strong id="modal-country">-</strong>
+                </div>
+            </div>
+
+            <div class="live-pulse-badge">
+                <div class="status-dot"></div> ANLIK RADAR GÜNCELLEMESİ AKTİF
+            </div>
+        </div>
     </div>
 
     <script>
-        // Avrupa ve Türkiye hattındaki aktif popüler uçuş veritabanı
-        const europeanFlights = [
-            { code: "THY1920", airline: "Turkish Airlines", route: "Istanbul (IST) - Vienna (VIE)", country: "Türkiye / Avusturya", speed: 850, altitude: 36000 },
-            { code: "THY1741", airline: "Turkish Airlines", route: "Istanbul (IST) - Graz (GRZ)", country: "Türkiye / Avusturya", speed: 820, altitude: 34000 },
-            { code: "DLH422", airline: "Lufthansa", route: "Frankfurt (FRA) - New York (JFK)", country: "Almanya", speed: 890, altitude: 38000 },
-            { code: "DLH1234", airline: "Lufthansa", route: "Munich (MUC) - Vienna (VIE)", country: "Almanya / Avusturya", speed: 780, altitude: 31000 },
-            { code: "AUA456", airline: "Austrian Airlines", route: "Vienna (VIE) - Graz (GRZ)", country: "Avusturya", speed: 450, altitude: 18000 },
-            { code: "AUA631", airline: "Austrian Airlines", route: "Vienna (VIE) - Paris (CDG)", country: "Avusturya / Fransa", speed: 840, altitude: 35000 },
-            { code: "RYR4412", airline: "Ryanair", route: "London (STN) - Rome (FCO)", country: "İngiltere / İtalya", speed: 860, altitude: 37000 },
-            { code: "RYR8821", airline: "Ryanair", route: "Vienna (VIE) - Barcelona (BCN)", country: "Avusturya / İspanya", speed: 855, altitude: 36500 },
-            { code: "EZY8312", airline: "EasyJet", route: "Berlin (BER) - London (LGW)", country: "Almanya / İngiltere", speed: 830, altitude: 34000 },
-            { code: "AFR1239", airline: "Air France", route: "Paris (CDG) - Istanbul (IST)", country: "Fransa / Türkiye", speed: 845, altitude: 35500 },
-            { code: "PGT321", airline: "Pegasus", route: "Ankara (ESB) - Vienna (VIE)", country: "Türkiye / Avusturya", speed: 810, altitude: 33000 },
-            { code: "BAW178", airline: "British Airways", route: "London (LHR) - Dubai (DXB)", country: "İngiltere", speed: 900, altitude: 39000 },
-            { code: "SWR184", airline: "Swiss International", route: "Zurich (ZRH) - Tokyo (HND)", country: "İsviçre", speed: 910, altitude: 40000 }
+        const flightsData = [
+            { code: "THY1920", airline: "Turkish Airlines", color: "#c8102e", logoText: "TK", route: "Istanbul (IST) - Vienna (VIE)", model: "Airbus A321neo", country: "Türkiye / Avusturya", speed: 850, altitude: 36000 },
+            { code: "THY1741", airline: "Turkish Airlines", color: "#c8102e", logoText: "TK", route: "Istanbul (IST) - Graz (GRZ)", model: "Boeing 737-800", country: "Türkiye / Avusturya", speed: 820, altitude: 34000 },
+            { code: "DLH422", airline: "Lufthansa", color: "#05164d", logoText: "LH", route: "Frankfurt (FRA) - New York (JFK)", model: "Boeing 747-8", country: "Almanya / Okyanusya", speed: 890, altitude: 38000 },
+            { code: "DLH1234", airline: "Lufthansa", color: "#05164d", logoText: "LH", route: "Munich (MUC) - Vienna (VIE)", model: "Airbus A320", country: "Almanya / Avusturya", speed: 780, altitude: 31000 },
+            { code: "AUA456", airline: "Austrian Airlines", color: "#e30613", logoText: "OS", route: "Vienna (VIE) - Graz (GRZ)", model: "Embraer E195", country: "Avusturya", speed: 450, altitude: 18000 },
+            { code: "AUA631", airline: "Austrian Airlines", color: "#e30613", logoText: "OS", route: "Vienna (VIE) - Paris (CDG)", model: "Airbus A320neo", country: "Avusturya / Fransa", speed: 840, altitude: 35000 },
+            { code: "RYR4412", airline: "Ryanair", color: "#003580", logoText: "FR", route: "London (STN) - Rome (FCO)", model: "Boeing 737 MAX 8", country: "İngiltere / İtalya", speed: 860, altitude: 37000 },
+            { code: "RYR8821", airline: "Ryanair", color: "#003580", logoText: "FR", route: "Vienna (VIE) - Barcelona (BCN)", model: "Boeing 737-800", country: "Avusturya / İspanya", speed: 855, altitude: 36500 },
+            { code: "EZY8312", airline: "EasyJet", color: "#ff6600", logoText: "U2", route: "Berlin (BER) - London (LGW)", model: "Airbus A321", country: "Almanya / İngiltere", speed: 830, altitude: 34000 },
+            { code: "AFR1239", airline: "Air France", color: "#002157", logoText: "AF", route: "Paris (CDG) - Istanbul (IST)", model: "Airbus A350-900", country: "Fransa / Türkiye", speed: 845, altitude: 35500 }
         ];
 
-        function displayFlights(flights) {
-            const container = document.getElementById('list-container');
+        let liveInterval = null;
+        let selectedFlight = null;
+
+        function renderFeed(items) {
+            const container = document.getElementById('feed-container');
             container.innerHTML = '';
 
-            if (flights.length === 0) {
-                container.innerHTML = '<div style="text-align:center; opacity:0.6; padding:20px;">Aradığınız kriterlere uygun uçuş bulunamadı.</div>';
+            if (items.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted);">Eşleşen uçuş bulunamadı.</div>';
                 return;
             }
 
-            flights.forEach(flight => {
+            items.forEach(flight => {
                 container.innerHTML += `
-                    <div class="flight-card">
-                        <div class="flight-info">
-                            <h4>✈️ ${flight.code} (${flight.airline})</h4>
-                            <p>📍 ${flight.route}</p>
-                            <p style="font-size:0.75em; opacity:0.7; margin-top:2px;">🌍 ${flight.country}</p>
+                    <div class="flight-card" onclick='openModal(${JSON.stringify(flight)})'>
+                        <div class="airline-branding">
+                            <div class="airline-logo" style="background-color: ${flight.color};">${flight.logoText}</div>
+                            <div class="flight-main-info">
+                                <h3>${flight.code}</h3>
+                                <p>${flight.route}</p>
+                            </div>
                         </div>
-                        <div class="flight-stats">
-                            <div>⚡ ${flight.speed} km/h</div>
-                            <span>📏 ${flight.altitude.toLocaleString()} ft</span>
+                        <div class="flight-metrics">
+                            <div class="metric-speed">⚡ ${flight.speed} km/h</div>
+                            <div class="metric-altitude">📏 ${flight.altitude.toLocaleString()} ft</div>
                         </div>
                     </div>
                 `;
             });
         }
 
-        function filterFlights() {
-            const query = document.getElementById('flight-code').value.trim().toUpperCase();
-            const statusMsg = document.getElementById('status-msg');
+        function openModal(flight) {
+            selectedFlight = flight;
+            document.getElementById('modal-code').innerText = flight.code;
+            document.getElementById('modal-airline').innerText = flight.airline;
+            document.getElementById('modal-route').innerText = flight.route;
+            document.getElementById('modal-model').innerText = flight.model;
+            document.getElementById('modal-country').innerText = flight.country;
+            
+            updateModalMetrics();
+            document.getElementById('flight-modal').style.display = 'flex';
 
-            if (!query) {
-                displayFlights(europeanFlights);
-                statusMsg.innerText = `Avrupa'da aktif ${europeanFlights.length} uçuş listeleniyor.`;
-                return;
-            }
-
-            const filtered = europeanFlights.filter(flight => {
-                return flight.code.toUpperCase().includes(query) || 
-                       flight.airline.toUpperCase().includes(query) || 
-                       flight.route.toUpperCase().includes(query);
-            });
-
-            statusMsg.innerText = `"${query}" için ${filtered.length} sonuç bulundu.`;
-            displayFlights(filtered);
+            if (liveInterval) clearInterval(liveInterval);
+            liveInterval = setInterval(() => {
+                selectedFlight.speed += Math.floor(Math.random() * 7) - 3;
+                selectedFlight.altitude += Math.floor(Math.random() * 50) - 25;
+                updateModalMetrics();
+            }, 2000);
         }
 
-        // Sayfa açıldığında listeyi yükle
-        displayFlights(europeanFlights);
+        function updateModalMetrics() {
+            if (!selectedFlight) return;
+            document.getElementById('modal-speed').innerText = selectedFlight.speed + ' km/h';
+            document.getElementById('modal-altitude').innerText = selectedFlight.altitude.toLocaleString() + ' ft';
+        }
+
+        function closeModal() {
+            document.getElementById('flight-modal').style.display = 'none';
+            if (liveInterval) clearInterval(liveInterval);
+        }
+
+        function filterFlights() {
+            const query = document.getElementById('flight-code').value.trim().toUpperCase();
+            if (!query) {
+                renderFeed(flightsData);
+                document.getElementById('status-text').innerText = "Avrupa Hava Sahası: Senkronize ve Aktif";
+                return;
+            }
+            const filtered = flightsData.filter(f => 
+                f.code.toUpperCase().includes(query) || 
+                f.airline.toUpperCase().includes(query) || 
+                f.route.toUpperCase().includes(query)
+            );
+            renderFeed(filtered);
+            document.getElementById('status-text').innerText = `${filtered.length} uçuş filtrelendi`;
+        }
+
+        renderFeed(flightsData);
     </script>
 </body>
-</html>
+            </html>
+            
