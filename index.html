@@ -16,57 +16,103 @@
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
         }
-        body {
-            margin: 0; padding: 16px;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
-            color: var(--text-main);
-            display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box;
-        }
-        .app-container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 16px; }
-        .app-header { text-align: center; }
-        .app-header h1 { margin: 0; font-size: 1.5em; color: var(--accent-blue); }
-        .search-input { width: 100%; padding: 14px 16px 14px 44px; border-radius: 14px; border: 1px solid var(--border-color); background: rgba(15, 23, 42, 0.8); color: white; box-sizing: border-box; outline: none; }
-        .flight-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; cursor: pointer; }
+        body { margin: 0; padding: 16px; font-family: sans-serif; background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%); color: var(--text-main); }
+        .app-container { width: 100%; max-width: 480px; margin: auto; }
+        .flight-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; cursor: pointer; transition: transform 0.2s; }
+        .flight-card:active { transform: scale(0.98); }
         .airline-logo { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; }
+        
+        /* Modal (Detay Ekranı) Tasarımı */
+        #flight-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(7, 13, 26, 0.85); backdrop-filter: blur(5px); z-index: 1000; padding: 20px; box-sizing: border-box; overflow-y: auto; }
+        .modal-card { background: #162033; border: 1px solid var(--border-color); border-radius: 20px; padding: 20px; max-width: 420px; margin: 30px auto; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .close-btn { background: #ef4444; border: none; color: white; padding: 8px 16px; border-radius: 8px; float: right; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .detail-box { background: rgba(15, 23, 42, 0.7); padding: 12px; border-radius: 12px; border: 1px solid var(--border-color); font-size: 0.85rem; }
+        .detail-box span { color: var(--accent-blue); font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="app-container">
-        <div class="app-header">
-            <h1>AeroRadar Pro</h1>
-            <p style="color:var(--text-muted); font-size:0.8rem;">AVRUPA CANLI UÇUŞ TAKİP SİSTEMİ</p>
-        </div>
-
-        <input type="text" class="search-input" id="flight-code" placeholder="Uçuş kodu ara..." onkeyup="filterFlights()">
+        <h1 style="text-align:center; color:var(--accent-blue); margin-bottom:5px;">AeroRadar Pro</h1>
+        <p style="text-align:center; color:var(--text-muted); font-size:0.75rem; margin-top:0; margin-bottom:15px;">AVRUPA CANLI UÇUŞ TAKİP SİSTEMİ</p>
+        
+        <input type="text" id="flight-code" placeholder="Uçuş kodu ara..." style="width:100%; padding:14px; border-radius:14px; border:none; background:#1e293b; color:white; margin-bottom:20px; box-sizing:border-box; outline:none;" onkeyup="filterFlights()">
 
         <div id="feed-container"></div>
     </div>
 
+    <!-- UÇUŞ DETAY MODALI -->
+    <div id="flight-modal">
+        <div class="modal-card">
+            <button class="close-btn" onclick="closeModal()">Kapat</button>
+            <h2 id="m-code" style="margin:0; color:var(--accent-blue);"></h2>
+            <p id="m-airline" style="color:var(--text-muted); margin:4px 0 15px 0; font-size:0.85rem;"></p>
+            
+            <hr style="border:0; border-top:1px solid var(--border-color); margin-bottom:15px;">
+
+            <div class="detail-grid">
+                <div class="detail-box">Rota:<br><span id="m-route"></span></div>
+                <div class="detail-box">Tahmini Varış:<br><span id="m-eta"></span></div>
+                <div class="detail-box">Anlık Hız:<br><span id="m-speed"></span></div>
+                <div class="detail-box">Yükseklik:<br><span id="m-alt"></span></div>
+                <div class="detail-box">Dikey Hız (V/S):<br><span id="m-vs"></span></div>
+                <div class="detail-box">Pusula Yönü:<br><span id="m-heading"></span></div>
+                <div class="detail-box">Uçak Modeli:<br><span id="m-aircraft"></span></div>
+                <div class="detail-box">Kuyruk Tescili:<br><span id="m-reg"></span></div>
+                <div class="detail-box">Squawk Kodu:<br><span id="m-squawk"></span></div>
+                <div class="detail-box">Dış Hava Sıcaklığı:<br><span id="m-weather"></span></div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const flightsData = [
-            { code: "THY1920", airline: "Turkish Airlines", color: "#c8102e", logoText: "TK", route: "Istanbul - Vienna", speed: "850 km/h", alt: "36.000 ft" },
-            { code: "DLH422", airline: "Lufthansa", color: "#05164d", logoText: "LH", route: "Frankfurt - New York", speed: "890 km/h", alt: "38.000 ft" },
-            { code: "AUA456", airline: "Austrian Airlines", color: "#e30613", logoText: "OS", route: "Vienna - Graz", speed: "450 km/h", alt: "18.000 ft" }
+            { code: "THY1920", airline: "Turkish Airlines", color: "#c8102e", logoText: "TK", route: "Istanbul - Vienna", speed: "850 km/h", alt: "36.000 ft", vs: "+1,200 ft/m", heading: "310° NW", aircraft: "Airbus A321", reg: "TC-JHS", squawk: "7421", eta: "1s 45dk", weather: "-42°C" },
+            { code: "DLH422", airline: "Lufthansa", color: "#05164d", logoText: "LH", route: "Frankfurt - New York", speed: "890 km/h", alt: "38.000 ft", vs: "0 ft/m", heading: "270° W", aircraft: "Boeing 747-8", reg: "D-ABYT", squawk: "1204", eta: "6s 20dk", weather: "-50°C" },
+            { code: "AUA456", airline: "Austrian Airlines", color: "#e30613", logoText: "OS", route: "Vienna - Graz", speed: "450 km/h", alt: "18.000 ft", vs: "-800 ft/m", heading: "210° SW", aircraft: "Embraer E195", reg: "OE-LDV", squawk: "4312", eta: "35 dk", weather: "-15°C" }
         ];
+
+        function openFlightDetail(code) {
+            const f = flightsData.find(item => item.code === code);
+            if (!f) return;
+
+            document.getElementById('m-code').innerText = f.code;
+            document.getElementById('m-airline').innerText = f.airline;
+            document.getElementById('m-route').innerText = f.route;
+            document.getElementById('m-eta').innerText = f.eta;
+            document.getElementById('m-speed').innerText = f.speed;
+            document.getElementById('m-alt').innerText = f.alt;
+            document.getElementById('m-vs').innerText = f.vs;
+            document.getElementById('m-heading').innerText = f.heading;
+            document.getElementById('m-aircraft').innerText = f.aircraft;
+            document.getElementById('m-reg').innerText = f.reg;
+            document.getElementById('m-squawk').innerText = f.squawk;
+            document.getElementById('m-weather').innerText = f.weather;
+
+            document.getElementById('flight-modal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('flight-modal').style.display = 'none';
+        }
 
         function renderFeed(items) {
             const container = document.getElementById('feed-container');
             container.innerHTML = '';
             items.forEach(f => {
                 container.innerHTML += `
-                    <div class="flight-card">
+                    <div class="flight-card" onclick="openFlightDetail('${f.code}')">
                         <div style="display:flex; align-items:center; gap:12px;">
                             <div class="airline-logo" style="background:${f.color}">${f.logoText}</div>
                             <div>
                                 <h3 style="margin:0; font-size:1rem;">${f.code}</h3>
-                                <p style="margin:2px 0 0 0; font-size:0.75rem; color:#94a3b8;">${f.route}</p>
+                                <p style="margin:2px 0 0 0; font-size:0.75rem; color:var(--text-muted);">${f.route}</p>
                             </div>
                         </div>
-                        <div style="text-align:right; font-size:0.85rem; font-weight:bold;">
-                            <div style="color:#34d399;">⚡ ${f.speed}</div>
-                            <div style="color:#fbbf24; font-size:0.75rem;">📉 ${f.alt}</div>
+                        <div style="text-align:right;">
+                            <div style="color:#34d399; font-size:0.85rem; font-weight:bold;">${f.speed}</div>
+                            <div style="color:#fbbf24; font-size:0.75rem;">${f.alt}</div>
                         </div>
                     </div>
                 `;
@@ -75,11 +121,9 @@
 
         function filterFlights() {
             const query = document.getElementById('flight-code').value.toUpperCase();
-            const filtered = flightsData.filter(f => f.code.includes(query) || f.route.toUpperCase().includes(query));
-            renderFeed(filtered);
+            renderFeed(flightsData.filter(f => f.code.includes(query) || f.route.toUpperCase().includes(query)));
         }
 
-        // Sayfa açıldığı an yükle
         renderFeed(flightsData);
     </script>
 </body>
