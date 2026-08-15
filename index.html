@@ -5,60 +5,138 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AeroRadar Pro</title>
     <style>
-        :root { --bg-primary: #070d1a; --accent-blue: #38bdf8; --card-bg: #1e293b; --text-muted: #94a3b8; }
-        body { margin: 0; padding: 20px; font-family: sans-serif; background: #070d1a; color: white; }
-        .app-container { max-width: 480px; margin: auto; }
-        .flight-card { background: var(--card-bg); padding: 16px; border-radius: 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #334155; cursor: pointer; }
-        .logo { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); padding: 20px; box-sizing: border-box; }
-        .m-content { background: #1e293b; padding: 20px; border-radius: 20px; margin-top: 50px; color: white; }
+        :root {
+            --bg-primary: #070d1a;
+            --bg-secondary: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.75);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --accent-blue: #38bdf8;
+            --accent-green: #34d399;
+            --accent-gold: #fbbf24;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        body { margin: 0; padding: 16px; font-family: sans-serif; background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%); color: var(--text-main); min-height: 100vh; box-sizing: border-box; }
+        .app-container { width: 100%; max-width: 480px; margin: auto; }
+        .flight-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 14px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; cursor: pointer; transition: transform 0.2s; }
+        .flight-card:active { transform: scale(0.98); }
+        
+        /* Logo Kutusu (Üstte İkon, Altta Kod) */
+        .airline-logo { width: 46px; height: 46px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; gap: 2px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .airline-logo span { font-size: 10px; font-weight: 800; letter-spacing: 0.5px; line-height: 1; }
+
+        /* Detay Modalı */
+        #flight-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(7, 13, 26, 0.85); backdrop-filter: blur(5px); z-index: 1000; padding: 16px; box-sizing: border-box; overflow-y: auto; }
+        .modal-card { background: #162033; border: 1px solid var(--border-color); border-radius: 20px; padding: 20px; max-width: 420px; margin: 20px auto; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .close-btn { background: #ef4444; border: none; color: white; padding: 8px 16px; border-radius: 8px; float: right; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .detail-box { background: rgba(15, 23, 42, 0.7); padding: 12px; border-radius: 12px; border: 1px solid var(--border-color); font-size: 0.82rem; color: var(--text-muted); }
+        .detail-box span { display: block; color: var(--text-main); font-weight: bold; font-size: 0.9rem; margin-top: 3px; }
     </style>
 </head>
 <body>
+
     <div class="app-container">
-        <h1 style="text-align:center; color:var(--accent-blue);">AeroRadar Pro</h1>
-        <div id="feed"></div>
+        <h1 style="text-align:center; color:var(--accent-blue); margin-bottom:4px; font-size:1.5rem;">AeroRadar Pro</h1>
+        <p style="text-align:center; color:var(--text-muted); font-size:0.75rem; margin-top:0; margin-bottom:16px;">AVRUPA CANLI UÇUŞ TAKİP SİSTEMİ</p>
+        
+        <input type="text" id="flight-code" placeholder="Uçuş kodu, havayolu ara..." style="width:100%; padding:14px; border-radius:14px; border:1px solid var(--border-color); background:rgba(30,41,59,0.5); color:white; margin-bottom:16px; box-sizing:border-box; outline:none;" onkeyup="filterFlights()">
+
+        <div id="feed-container"></div>
     </div>
 
-    <div id="modal" onclick="this.style.display='none'">
-        <div class="m-content">
-            <h2 id="m-title">Uçuş Detayı</h2>
-            <p id="m-info"></p>
-            <button style="width:100%; padding:10px; background:#ef4444; border:none; color:white; border-radius:8px;">Kapat</button>
+    <!-- UÇUŞ DETAY MODALI -->
+    <div id="flight-modal">
+        <div class="modal-card">
+            <button class="close-btn" onclick="closeModal()">Kapat</button>
+            <h2 id="m-code" style="margin:0; color:var(--accent-blue);"></h2>
+            <p id="m-airline" style="color:var(--text-muted); margin:4px 0 15px 0; font-size:0.85rem;"></p>
+            
+            <hr style="border:0; border-top:1px solid var(--border-color); margin-bottom:15px;">
+
+            <div class="detail-grid">
+                <div class="detail-box">Rota:<span id="m-route"></span></div>
+                <div class="detail-box">Tahmini Varış:<span id="m-eta"></span></div>
+                <div class="detail-box">Anlık Hız:<span id="m-speed" style="color:var(--accent-green);"></span></div>
+                <div class="detail-box">Yükseklik:<span id="m-alt" style="color:var(--accent-gold);"></span></div>
+                <div class="detail-box">Dikey Hız (V/S):<span id="m-vs"></span></div>
+                <div class="detail-box">Pusula Yönü:<span id="m-heading"></span></div>
+                <div class="detail-box">Uçak Modeli:<span id="m-aircraft"></span></div>
+                <div class="detail-box">Kuyruk Tescili:<span id="m-reg"></span></div>
+                <div class="detail-box">Squawk Kodu:<span id="m-squawk"></span></div>
+                <div class="detail-box">Dış Sıcaklık:<span id="m-weather"></span></div>
+            </div>
         </div>
     </div>
 
     <script>
-        const flights = [
-            { code: "THY1920", airline: "Turkish Airlines", color: "#c8102e", route: "Istanbul - Vienna", speed: "850 km/h" },
-            { code: "DLH422", airline: "Lufthansa", color: "#05164d", route: "Frankfurt - New York", speed: "890 km/h" }
+        const flightsData = [
+            { code: "THY1920", airline: "Turkish Airlines", color: "#c8102e", logoText: "TK", route: "Istanbul - Vienna", speed: "850 km/h", alt: "36.000 ft", vs: "+1,200 ft/m", heading: "310° NW", aircraft: "Airbus A321", reg: "TC-JHS", squawk: "7421", eta: "1s 45dk", weather: "-42°C" },
+            { code: "DLH422", airline: "Lufthansa", color: "#05164d", logoText: "LH", route: "Frankfurt - New York", speed: "890 km/h", alt: "38.000 ft", vs: "0 ft/m", heading: "270° W", aircraft: "Boeing 747-8", reg: "D-ABYT", squawk: "1204", eta: "6s 20dk", weather: "-50°C" },
+            { code: "AUA456", airline: "Austrian Airlines", color: "#e30613", logoText: "OS", route: "Vienna - Graz", speed: "450 km/h", alt: "18.000 ft", vs: "-800 ft/m", heading: "210° SW", aircraft: "Embraer E195", reg: "OE-LDV", squawk: "4312", eta: "35 dk", weather: "-15°C" }
         ];
 
-        function showDetail(f) {
-            document.getElementById('m-title').innerText = f.code;
-            document.getElementById('m-info').innerText = f.airline + " | " + f.route + " | Hız: " + f.speed;
-            document.getElementById('modal').style.display = 'block';
+        function openFlightDetail(code) {
+            const f = flightsData.find(item => item.code === code);
+            if (!f) return;
+
+            document.getElementById('m-code').innerText = f.code;
+            document.getElementById('m-airline').innerText = f.airline;
+            document.getElementById('m-route').innerText = f.route;
+            document.getElementById('m-eta').innerText = f.eta;
+            document.getElementById('m-speed').innerText = f.speed;
+            document.getElementById('m-alt').innerText = f.alt;
+            document.getElementById('m-vs').innerText = f.vs;
+            document.getElementById('m-heading').innerText = f.heading;
+            document.getElementById('m-aircraft').innerText = f.aircraft;
+            document.getElementById('m-reg').innerText = f.reg;
+            document.getElementById('m-squawk').innerText = f.squawk;
+            document.getElementById('m-weather').innerText = f.weather;
+
+            document.getElementById('flight-modal').style.display = 'block';
         }
 
-        const feed = document.getElementById('feed');
-        flights.forEach(f => {
-            const div = document.createElement('div');
-            div.className = 'flight-card';
-            div.innerHTML = `
-                <div style="display:flex; align-items:center;">
-                    <div class="logo" style="background:${f.color}">${f.code[0]}</div>
-                    <div style="margin-left:15px;">
-                        <div style="font-weight:bold;">${f.code}</div>
-                        <div style="font-size:0.75rem; color:#94a3b8;">${f.route}</div>
+        function closeModal() {
+            document.getElementById('flight-modal').style.display = 'none';
+        }
+
+        function renderFeed(items) {
+            const container = document.getElementById('feed-container');
+            container.innerHTML = '';
+            items.forEach(f => {
+                container.innerHTML += `
+                    <div class="flight-card" onclick="openFlightDetail('${f.code}')">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div class="airline-logo" style="background:${f.color}">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+                                <span>${f.logoText}</span>
+                            </div>
+                            <div>
+                                <h3 style="margin:0; font-size:1rem;">${f.code}</h3>
+                                <p style="margin:2px 0 0 0; font-size:0.75rem; color:var(--text-muted);">${f.route}</p>
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="color:var(--accent-green); font-size:0.85rem; font-weight:bold; display:flex; align-items:center; justify-content:flex-end; gap:4px;">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="3"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4"/></svg>
+                                ${f.speed}
+                            </div>
+                            <div style="color:var(--accent-gold); font-size:0.75rem; display:flex; align-items:center; justify-content:flex-end; gap:4px; margin-top:2px;">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="3"><path d="M12 19V5m-7 7l7-7 7 7"/></svg>
+                                ${f.alt}
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div style="text-align:right;">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
-                </div>
-            `;
-            div.onclick = () => showDetail(f);
-            feed.appendChild(div);
-        });
+                `;
+            });
+        }
+
+        function filterFlights() {
+            const query = document.getElementById('flight-code').value.toUpperCase();
+            renderFeed(flightsData.filter(f => f.code.includes(query) || f.route.toUpperCase().includes(query)));
+        }
+
+        renderFeed(flightsData);
     </script>
 </body>
 </html>
