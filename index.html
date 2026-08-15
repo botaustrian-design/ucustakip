@@ -3,30 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Küresel Uçuş Takibi</title>
-    <!-- Leaflet Harita Kütüphanesi -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <title>Uçuş Takip</title>
     <style>
         body {
             margin: 0;
-            padding: 0;
+            padding: 15px;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #0f172a;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             color: white;
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
         }
 
-        /* Arama Kutusu Alanı */
-        .search-bar {
-            padding: 12px;
-            background: #1e293b;
+        .container {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        h2 { text-align: center; margin-bottom: 5px; color: #60a5fa; }
+
+        .search-box {
             display: flex;
             gap: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            z-index: 1000;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
         }
 
         input {
@@ -34,11 +42,13 @@
             padding: 12px 15px;
             border-radius: 10px;
             border: none;
-            background: #334155;
+            background: rgba(255, 255, 255, 0.15);
             color: white;
             font-size: 1em;
             outline: none;
         }
+
+        input::placeholder { color: rgba(255, 255, 255, 0.6); }
 
         button {
             padding: 0 20px;
@@ -53,172 +63,112 @@
 
         button:active { background: #2563eb; }
 
-        /* Uçuş Bilgi Kartı */
-        #info-card {
-            background: rgba(30, 41, 59, 0.95);
-            backdrop-filter: blur(10px);
-            margin: 10px;
-            padding: 15px;
-            border-radius: 12px;
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
             display: none;
-            z-index: 1000;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-            border: 1px solid rgba(255,255,255,0.1);
         }
 
-        #info-card h3 { margin: 0 0 8px 0; font-size: 1.1em; color: #60a5fa; }
-        .flight-details-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            font-size: 0.9em;
+        .card h3 { margin-top: 0; color: #93c5fd; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 8px; }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 1.05em;
         }
 
-        /* Dünya Haritası */
-        #map {
-            flex: 1;
-            width: 100%;
-            z-index: 1;
-            background: #0f172a;
-        }
-
-        /* Yükleniyor Ekranı */
-        #loading {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(15, 23, 42, 0.9);
-            padding: 20px 30px;
-            border-radius: 12px;
-            z-index: 2000;
-            font-weight: 500;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        .info-row:last-child { border-bottom: none; }
+        
+        #status-msg {
+            text-align: center;
+            margin-top: 20px;
+            opacity: 0.8;
+            font-size: 0.95em;
         }
     </style>
 </head>
 <body>
 
-    <div id="loading">Dünya hava sahası yükleniyor...</div>
+    <div class="container">
+        <h2>Uçuş Bilgi Ekranı</h2>
+        <div class="search-box">
+            <input type="text" id="flight-code" placeholder="Uçuş kodu yazın (Örn: THY, DLH, BAW)">
+            <button onclick="searchFlight()">Sorgula</button>
+        </div>
 
-    <div class="search-bar">
-        <input type="text" id="flight-code" placeholder="Uçuş kodu ara (Örn: THY, DLH)...">
-        <button onclick="searchFlight()">Ara</button>
+        <div id="status-msg">Uçuş kodunu yazıp sorgulayabilirsiniz.</div>
+
+        <div class="card" id="result-card">
+            <h3 id="flight-title">Uçuş Detayı</h3>
+            <div class="info-row"><span>Ülke / Kaynak:</span> <strong id="f-country">-</strong></div>
+            <div class="info-row"><span>Anlık Hız:</span> <strong id="f-speed">-</strong></div>
+            <div class="info-row"><span>Anlık Yükseklik:</span> <strong id="f-altitude">-</strong></div>
+            <div class="info-row"><span>Enlem / Boylam:</span> <strong id="f-coords">-</strong></div>
+        </div>
     </div>
 
-    <div id="info-card">
-        <h3 id="card-title">Uçuş Bilgisi</h3>
-        <div class="flight-details-grid" id="card-content"></div>
-    </div>
-
-    <div id="map"></div>
-
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Haritayı Başlat (Dünya Görünümü)
-        const map = L.map('map', { zoomControl: false }).setView([30, 0], 2);
+        function searchFlight() {
+            const query = document.getElementById('flight-code').value.trim().toUpperCase();
+            const statusMsg = document.getElementById('status-msg');
+            const card = document.getElementById('result-card');
 
-        // Koyu Tema Harita Katmanı (CartoDB Dark Matter)
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 18,
-            attribution: '&copy; OpenStreetMap & CARTO'
-        }).addTo(map);
+            if (!query) {
+                alert('Lütfen bir uçuş kodu girin!');
+                return;
+            }
 
-        let flightMarkers = L.layerGroup().addTo(map);
-        let globalFlights = [];
+            statusMsg.innerText = 'Uçaklar taranıyor, lütfen bekleyin...';
+            card.style.display = 'none';
 
-        // Canlı Uçuş Verilerini Çek (OpenSky Network API)
-        function fetchFlights() {
-            fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://opensky-network.org/api/states/all'))
+            // Güvenli ve direkt veri çekme yöntemi
+            fetch('https://opensky-network.org/api/states/all')
                 .then(res => res.json())
                 .then(data => {
-                    document.getElementById('loading').style.display = 'none';
-                    if (data && data.states) {
-                        globalFlights = data.states;
-                        updateMapMarkers(globalFlights);
+                    if (!data || !data.states) {
+                        statusMsg.innerText = 'Veri alınamadı. Tekrar deneyin.';
+                        return;
+                    }
+
+                    const found = data.states.find(flight => {
+                        const callsign = flight[1] ? flight[1].trim().toUpperCase() : '';
+                        return callsign.includes(query);
+                    });
+
+                    if (found) {
+                        statusMsg.innerText = '';
+                        card.style.display = 'block';
+
+                        const callsign = found[1] ? found[1].trim() : 'Bilinmiyor';
+                        const country = found[2] || 'Bilinmiyor';
+                        const lon = found[5];
+                        const lat = found[6];
+                        
+                        // Hız (m/s -> km/h)
+                        const speedKmh = found[9] ? Math.round(found[9] * 3.6) : 0;
+                        
+                        // Yükseklik (Metre -> Feet)
+                        const altitudeFt = found[7] ? Math.round(found[7] * 3.28084) : 0;
+
+                        document.getElementById('flight-title').innerText = 'Uçuş: ' + callsign;
+                        document.getElementById('f-country').innerText = country;
+                        document.getElementById('f-speed').innerText = speedKmh + ' km/h';
+                        document.getElementById('f-altitude').innerText = altitudeFt.toLocaleString() + ' ft';
+                        document.getElementById('f-coords').innerText = lat ? `${lat.toFixed(2)}, ${lon.toFixed(2)}` : 'Bilinmiyor';
+                    } else {
+                        statusMsg.innerText = `"${query}" koduna ait şu an havada aktif bir uçuş bulunamadı.`;
+                        card.style.display = 'none';
                     }
                 })
                 .catch(err => {
-                    document.getElementById('loading').innerText = 'Veriler yüklenemedi. İnternetinizi kontrol edin.';
+                    statusMsg.innerText = 'Bağlantı hatası oluştu. İnternetinizi kontrol edin.';
                 });
         }
-
-        function updateMapMarkers(flights) {
-            flightMarkers.clearLayers();
-            let count = 0;
-            // Mobilde donma yapmaması için ilk 200 aktif uçağı haritaya basalım
-            flights.forEach(flight => {
-                const lon = flight[5];
-                const lat = flight[6];
-                const callsign = flight[1] ? flight[1].trim() : 'Bilinmiyor';
-                const country = flight[2];
-
-                if (lat && lon && count < 200) {
-                    const marker = L.circleMarker([lat, lon], {
-                        radius: 4,
-                        color: '#3b82f6',
-                        fillColor: '#60a5fa',
-                        fillOpacity: 0.9
-                    });
-
-                    marker.bindPopup(`<b>Uçuş/Kod:</b> ${callsign}<br>Ülke: ${country}`);
-                    flightMarkers.addLayer(marker);
-                    count++;
-                }
-            });
-        }
-
-        // Uçuş Arama Fonksiyonu
-        function searchFlight() {
-            const query = document.getElementById('flight-code').value.trim().toUpperCase();
-            if (!query) return;
-
-            const found = globalFlights.find(flight => {
-                const callsign = flight[1] ? flight[1].trim().toUpperCase() : '';
-                return callsign.includes(query);
-            });
-
-            const card = document.getElementById('info-card');
-            const cardTitle = document.getElementById('card-title');
-            const cardContent = document.getElementById('card-content');
-
-            if (found) {
-                const callsign = found[1] ? found[1].trim() : 'Bilinmiyor';
-                const country = found[2];
-                const lat = found[6];
-                const lon = found[5];
-                
-                // Hız: m/s cinsinden gelir, km/h'ye çeviriyoruz
-                const speedKmh = found[9] ? Math.round(found[9] * 3.6) : 0;
-                
-                // Yükseklik: Metre cinsinden gelir, feet'e çeviriyoruz (1 metre = 3.28084 feet)
-                const altitudeFt = found[7] ? Math.round(found[7] * 3.28084) : 0;
-
-                cardTitle.innerText = `Uçuş Kodu: ${callsign}`;
-                cardContent.innerHTML = `
-                    <div>🌍 <b>Ülke:</b> ${country}</div>
-                    <div>⚡ <b>Hız:</b> ${speedKmh} km/h</div>
-                    <div>📏 <b>Yükseklik:</b> ${altitudeFt.toLocaleString()} ft</div>
-                    <div>📍 <b>Durum:</b> Havada Aktif</div>
-                `;
-                card.style.display = 'block';
-
-                // Haritayı bulunan uçağa odakla
-                if (lat && lon) {
-                    map.setView([lat, lon], 6);
-                }
-            } else {
-                cardTitle.innerText = 'Bulunamadı';
-                cardContent.innerHTML = `<div>"${query" koduna ait aktif bir uçuş bulunamadı. Başka bir kod deneyin.</div>`;
-                card.style.display = 'block';
-            }
-        }
-
-        // Uygulama açıldığında verileri çek
-        fetchFlights();
-
-        // Her 30 saniyede bir uçak konumlarını güncelle
-        setInterval(fetchFlights, 30000);
     </script>
 </body>
 </html>
