@@ -5,50 +5,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AeroRadar Pro</title>
     <style>
-        :root {
-            --bg-primary: #070d1a;
-            --bg-secondary: #0f172a;
-            --card-bg: #1e293b;
-            --text-main: #ffffff;
-            --text-muted: #94a3b8;
-            --accent-blue: #38bdf8;
-        }
+        :root { --bg-primary: #070d1a; --accent-blue: #38bdf8; --card-bg: #1e293b; --text-muted: #94a3b8; }
         body { margin: 0; padding: 20px; font-family: sans-serif; background: #070d1a; color: white; }
         .app-container { max-width: 480px; margin: auto; }
-        .flight-card { background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #334155; }
-        .logo { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; }
-        .info { margin-left: 15px; flex-grow: 1; }
-        .details { text-align: right; font-size: 0.85rem; }
+        .flight-card { background: var(--card-bg); padding: 16px; border-radius: 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #334155; cursor: pointer; }
+        .logo { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); padding: 20px; box-sizing: border-box; }
+        .m-content { background: #1e293b; padding: 20px; border-radius: 20px; margin-top: 50px; color: white; }
     </style>
 </head>
 <body>
     <div class="app-container">
-        <h1 style="text-align:center; color:#38bdf8;">AeroRadar Pro</h1>
-        <div id="feed-container"></div>
+        <h1 style="text-align:center; color:var(--accent-blue);">AeroRadar Pro</h1>
+        <div id="feed"></div>
     </div>
+
+    <div id="modal" onclick="this.style.display='none'">
+        <div class="m-content">
+            <h2 id="m-title">Uçuş Detayı</h2>
+            <p id="m-info"></p>
+            <button style="width:100%; padding:10px; background:#ef4444; border:none; color:white; border-radius:8px;">Kapat</button>
+        </div>
+    </div>
+
     <script>
-        const flightsData = [
-            { code: "THY1920", airline: "Turkish Airlines", color: "#c8102e", logoText: "TK", route: "Istanbul - Vienna", speed: "850 km/h", alt: "36.000 ft" },
-            { code: "DLH422", airline: "Lufthansa", color: "#05164d", logoText: "LH", route: "Frankfurt - New York", speed: "890 km/h", alt: "38.000 ft" },
-            { code: "AUA456", airline: "Austrian Airlines", color: "#e30613", logoText: "OS", route: "Vienna - Graz", speed: "450 km/h", alt: "18.000 ft" }
+        const flights = [
+            { code: "THY1920", airline: "Turkish Airlines", color: "#c8102e", route: "Istanbul - Vienna", speed: "850 km/h" },
+            { code: "DLH422", airline: "Lufthansa", color: "#05164d", route: "Frankfurt - New York", speed: "890 km/h" }
         ];
-        const container = document.getElementById('feed-container');
-        flightsData.forEach(f => {
-            container.innerHTML += `
-                <div class="flight-card">
-                    <div style="display:flex; align-items:center;">
-                        <div class="logo" style="background:${f.color}">${f.logoText}</div>
-                        <div class="info">
-                            <div style="font-weight:bold;">${f.code}</div>
-                            <div style="font-size:0.75rem; color:#94a3b8;">${f.route}</div>
-                        </div>
-                    </div>
-                    <div class="details">
-                        <div style="color:#34d399;">${f.speed}</div>
-                        <div style="color:#fbbf24;">${f.alt}</div>
+
+        function showDetail(f) {
+            document.getElementById('m-title').innerText = f.code;
+            document.getElementById('m-info').innerText = f.airline + " | " + f.route + " | Hız: " + f.speed;
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        const feed = document.getElementById('feed');
+        flights.forEach(f => {
+            const div = document.createElement('div');
+            div.className = 'flight-card';
+            div.innerHTML = `
+                <div style="display:flex; align-items:center;">
+                    <div class="logo" style="background:${f.color}">${f.code[0]}</div>
+                    <div style="margin-left:15px;">
+                        <div style="font-weight:bold;">${f.code}</div>
+                        <div style="font-size:0.75rem; color:#94a3b8;">${f.route}</div>
                     </div>
                 </div>
+                <div style="text-align:right;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
+                </div>
             `;
+            div.onclick = () => showDetail(f);
+            feed.appendChild(div);
         });
     </script>
 </body>
