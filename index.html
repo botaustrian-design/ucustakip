@@ -209,7 +209,7 @@
             fill: currentColor;
         }
 
-        /* Detay Modal Ekranı (Ultra Detaylı) */
+        /* Detay Modal Ekranı */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -350,7 +350,7 @@
         <div class="flight-feed" id="feed-container"></div>
     </div>
 
-    <!-- Detay Modal Ekranı (Ultra Detaylı) -->
+    <!-- Detay Modal Ekranı -->
     <div class="modal-overlay" id="flight-modal" onclick="if(event.target === this) closeModal()">
         <div class="modal-card">
             <div class="modal-top">
@@ -424,7 +424,7 @@
 
             items.forEach(flight => {
                 container.innerHTML += `
-                    <div class="flight-card" onclick='openModal(${JSON.stringify(flight)})'>
+                    <div class="flight-card" onclick="openModalByCode('${flight.code}')">
                         <div class="airline-branding">
                             <div class="airline-logo" style="background-color: ${flight.color};">${flight.logoText}</div>
                             <div class="flight-main-info">
@@ -447,7 +447,10 @@
             });
         }
 
-        function openModal(flight) {
+        function openModalByCode(code) {
+            const flight = flightsData.find(f => f.code === code);
+            if (!flight) return;
+
             selectedFlight = flight;
             document.getElementById('modal-code').innerText = flight.code;
             document.getElementById('modal-airline').innerText = flight.airline;
@@ -475,6 +478,4 @@
             }, 2000);
         }
 
-        function updateModalMetrics() {
-            if (!selectedFlight) return;
-            document.
+        function updateModalMetr
