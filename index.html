@@ -188,32 +188,38 @@
             text-align: right;
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 4px;
         }
 
-        .metric-speed {
-            font-size: 0.9rem;
+        .metric-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 5px;
+            font-size: 0.85rem;
             font-weight: 700;
-            color: var(--accent-green);
         }
 
-        .metric-altitude {
-            font-size: 0.78rem;
-            font-weight: 600;
-            color: var(--accent-gold);
+        .metric-row.speed { color: var(--accent-green); }
+        .metric-row.altitude { color: var(--accent-gold); font-size: 0.78rem; }
+
+        .svg-icon {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
         }
 
-        /* Modal / Detay Penceresi */
+        /* Detay Modal Ekranı (Ultra Detaylı) */
         .modal-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(3, 7, 18, 0.85);
+            background: rgba(3, 7, 18, 0.88);
             backdrop-filter: blur(20px);
             z-index: 1000;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 15px;
             box-sizing: border-box;
             animation: fadeIn 0.2s ease;
         }
@@ -224,13 +230,15 @@
         }
 
         .modal-card {
-            background: rgba(15, 23, 42, 0.9);
+            background: rgba(15, 23, 42, 0.95);
             border: 1px solid rgba(255, 255, 255, 0.12);
             width: 100%;
-            max-width: 420px;
+            max-width: 440px;
+            max-height: 90vh;
+            overflow-y: auto;
             border-radius: 24px;
-            padding: 24px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            padding: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
             box-sizing: border-box;
             position: relative;
         }
@@ -240,18 +248,18 @@
             align-items: center;
             justify-content: space-between;
             border-bottom: 1px solid var(--border-color);
-            padding-bottom: 16px;
-            margin-bottom: 16px;
+            padding-bottom: 14px;
+            margin-bottom: 14px;
         }
 
         .modal-title-area h2 {
             margin: 0;
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             color: var(--text-main);
         }
 
         .modal-title-area span {
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             color: var(--text-muted);
         }
 
@@ -259,28 +267,34 @@
             background: rgba(255, 255, 255, 0.08);
             border: none;
             color: var(--text-main);
-            width: 36px; height: 36px;
+            width: 34px; height: 34px;
             border-radius: 50%;
-            font-size: 1rem;
+            font-size: 0.95rem;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.2s;
         }
 
-        .close-btn:active { background: rgba(255, 255, 255, 0.2); }
+        .section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent-blue);
+            margin: 12px 0 6px 4px;
+            font-weight: 700;
+        }
 
         .detail-grid {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 8px;
         }
 
         .detail-item {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 12px 16px;
+            padding: 10px 14px;
             border-radius: 12px;
             display: flex;
             justify-content: space-between;
@@ -288,13 +302,14 @@
         }
 
         .detail-item span {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--text-muted);
         }
 
         .detail-item strong {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             color: var(--text-main);
+            text-align: right;
         }
 
         .live-pulse-badge {
@@ -307,7 +322,6 @@
             border-radius: 12px;
             font-size: 0.8rem;
             font-weight: 600;
-            letter-spacing: 0.5px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -336,7 +350,7 @@
         <div class="flight-feed" id="feed-container"></div>
     </div>
 
-    <!-- Detay Modal Ekranı -->
+    <!-- Detay Modal Ekranı (Ultra Detaylı) -->
     <div class="modal-overlay" id="flight-modal" onclick="if(event.target === this) closeModal()">
         <div class="modal-card">
             <div class="modal-top">
@@ -347,27 +361,35 @@
                 <button class="close-btn" onclick="closeModal()">✕</button>
             </div>
 
+            <div class="section-title">Uçuş ve Rota Bilgileri</div>
             <div class="detail-grid">
-                <div class="detail-item">
-                    <span>Güzergah</span>
-                    <strong id="modal-route">-</strong>
-                </div>
-                <div class="detail-item">
-                    <span>Uçak Modeli</span>
-                    <strong id="modal-model">-</strong>
-                </div>
-                <div class="detail-item">
-                    <span>Anlık Hız</span>
-                    <strong id="modal-speed" style="color:var(--accent-green);">-</strong>
-                </div>
-                <div class="detail-item">
-                    <span>Uçuş Yüksekliği</span>
-                    <strong id="modal-altitude" style="color:var(--accent-gold);">-</strong>
-                </div>
-                <div class="detail-item">
-                    <span>Hava Sahası Ülkesi</span>
-                    <strong id="modal-country">-</strong>
-                </div>
+                <div class="detail-item"><span>Güzergah</span> <strong id="modal-route">-</strong></div>
+                <div class="detail-item"><span>Kalan Mesafe</span> <strong id="modal-distance">-</strong></div>
+                <div class="detail-item"><span>Tahmini Varış (ETA)</span> <strong id="modal-eta">-</strong></div>
+            </div>
+
+            <div class="section-title">Teknik ve Performans Verileri</div>
+            <div class="detail-grid">
+                <div class="detail-item"><span>Anlık Hız</span> <strong id="modal-speed" style="color:var(--accent-green);">-</strong></div>
+                <div class="detail-item"><span>Anlık Yükseklik</span> <strong id="modal-altitude" style="color:var(--accent-gold);">-</strong></div>
+                <div class="detail-item"><span>Dikey Hız (V/S)</span> <strong id="modal-vspeed">-</strong></div>
+                <div class="detail-item"><span>Pusula Yönü (Heading)</span> <strong id="modal-heading">-</strong></div>
+            </div>
+
+            <div class="section-title">Uçak ve Donanım Bilgileri</div>
+            <div class="detail-grid">
+                <div class="detail-item"><span>Uçak Modeli</span> <strong id="modal-model">-</strong></div>
+                <div class="detail-item"><span>Kuyruk Tescili</span> <strong id="modal-reg">-</strong></div>
+                <div class="detail-item"><span>Squawk Kodu</span> <strong id="modal-squawk">-</strong></div>
+                <div class="detail-item"><span>Radar Vericisi</span> <strong id="modal-transponder">Mode S / ADS-B</strong></div>
+            </div>
+
+            <div class="section-title">Konum ve Hava Koşulları</div>
+            <div class="detail-grid">
+                <div class="detail-item"><span>Koordinat (Enlem / Boylam)</span> <strong id="modal-coords">-</strong></div>
+                <div class="detail-item"><span>Hava Sahası Ülkesi</span> <strong id="modal-country">-</strong></div>
+                <div class="detail-item"><span>Dış Hava Sıcaklığı</span> <strong id="modal-temp">-</strong></div>
+                <div class="detail-item"><span>Rüzgar Durumu</span> <strong id="modal-wind">-</strong></div>
             </div>
 
             <div class="live-pulse-badge">
@@ -378,16 +400,14 @@
 
     <script>
         const flightsData = [
-            { code: "THY1920", airline: "Turkish Airlines", color: "#c8102e", logoText: "TK", route: "Istanbul (IST) - Vienna (VIE)", model: "Airbus A321neo", country: "Türkiye / Avusturya", speed: 850, altitude: 36000 },
-            { code: "THY1741", airline: "Turkish Airlines", color: "#c8102e", logoText: "TK", route: "Istanbul (IST) - Graz (GRZ)", model: "Boeing 737-800", country: "Türkiye / Avusturya", speed: 820, altitude: 34000 },
-            { code: "DLH422", airline: "Lufthansa", color: "#05164d", logoText: "LH", route: "Frankfurt (FRA) - New York (JFK)", model: "Boeing 747-8", country: "Almanya / Okyanusya", speed: 890, altitude: 38000 },
-            { code: "DLH1234", airline: "Lufthansa", color: "#05164d", logoText: "LH", route: "Munich (MUC) - Vienna (VIE)", model: "Airbus A320", country: "Almanya / Avusturya", speed: 780, altitude: 31000 },
-            { code: "AUA456", airline: "Austrian Airlines", color: "#e30613", logoText: "OS", route: "Vienna (VIE) - Graz (GRZ)", model: "Embraer E195", country: "Avusturya", speed: 450, altitude: 18000 },
-            { code: "AUA631", airline: "Austrian Airlines", color: "#e30613", logoText: "OS", route: "Vienna (VIE) - Paris (CDG)", model: "Airbus A320neo", country: "Avusturya / Fransa", speed: 840, altitude: 35000 },
-            { code: "RYR4412", airline: "Ryanair", color: "#003580", logoText: "FR", route: "London (STN) - Rome (FCO)", model: "Boeing 737 MAX 8", country: "İngiltere / İtalya", speed: 860, altitude: 37000 },
-            { code: "RYR8821", airline: "Ryanair", color: "#003580", logoText: "FR", route: "Vienna (VIE) - Barcelona (BCN)", model: "Boeing 737-800", country: "Avusturya / İspanya", speed: 855, altitude: 36500 },
-            { code: "EZY8312", airline: "EasyJet", color: "#ff6600", logoText: "U2", route: "Berlin (BER) - London (LGW)", model: "Airbus A321", country: "Almanya / İngiltere", speed: 830, altitude: 34000 },
-            { code: "AFR1239", airline: "Air France", color: "#002157", logoText: "AF", route: "Paris (CDG) - Istanbul (IST)", model: "Airbus A350-900", country: "Fransa / Türkiye", speed: 845, altitude: 35500 }
+            { code: "THY1920", airline: "Turkish Airlines", color: "#c8102e", logoText: "TK", route: "Istanbul (IST) - Vienna (VIE)", model: "Airbus A321neo", reg: "TC-LTA", squawk: "4321", distance: "640 km", eta: "55 dk", vspeed: "+120 ft/min", heading: "312° NW", coords: "48.1103° N, 15.2014° E", temp: "-48°C", wind: "Tailwind 45 km/h", country: "Türkiye / Avusturya", speed: 850, altitude: 36000 },
+            { code: "THY1741", airline: "Turkish Airlines", color: "#c8102e", logoText: "TK", route: "Istanbul (IST) - Graz (GRZ)", model: "Boeing 737-800", reg: "TC-JHK", squawk: "1024", distance: "480 km", eta: "40 dk", vspeed: "0 ft/min (Level)", heading: "295° W", coords: "47.0707° N, 15.4395° E", temp: "-45°C", wind: "Tailwind 30 km/h", country: "Türkiye / Avusturya", speed: 820, altitude: 34000 },
+            { code: "DLH422", airline: "Lufthansa", color: "#05164d", logoText: "LH", route: "Frankfurt (FRA) - New York (JFK)", model: "Boeing 747-8", reg: "D-ABYA", squawk: "5512", distance: "4,200 km", eta: "5 saat 15 dk", vspeed: "+60 ft/min", heading: "270° W", coords: "50.1109° N, 8.6821° E", temp: "-54°C", wind: "Headwind 90 km/h", country: "Almanya / Okyanusya", speed: 890, altitude: 38000 },
+            { code: "DLH1234", airline: "Lufthansa", color: "#05164d", logoText: "LH", route: "Munich (MUC) - Vienna (VIE)", model: "Airbus A320", reg: "D-AIZQ", squawk: "7102", distance: "350 km", eta: "35 dk", vspeed: "-100 ft/min", heading: "115° SE", coords: "48.1351° N, 11.5820° E", temp: "-40°C", wind: "Tailwind 20 km/h", country: "Almanya / Avusturya", speed: 780, altitude: 31000 },
+            { code: "AUA456", airline: "Austrian Airlines", color: "#e30613", logoText: "OS", route: "Vienna (VIE) - Graz (GRZ)", model: "Embraer E195", reg: "OE-LWH", squawk: "3341", distance: "140 km", eta: "22 dk", vspeed: "-450 ft/min (Alçalıyor)", heading: "210° SW", coords: "47.5000° N, 16.0000° E", temp: "-12°C", wind: "Calm 10 km/h", country: "Avusturya", speed: 450, altitude: 18000 },
+            { code: "AUA631", airline: "Austrian Airlines", color: "#e30613", logoText: "OS", route: "Vienna (VIE) - Paris (CDG)", model: "Airbus A320neo", reg: "OE-LZN", squawk: "2233", distance: "1,040 km", eta: "1 saat 45 dk", vspeed: "0 ft/min (Level)", heading: "265° W", coords: "48.8566° N, 2.3522° E", temp: "-46°C", wind: "Tailwind 50 km/h", country: "Avusturya / Fransa", speed: 840, altitude: 35000 },
+            { code: "RYR4412", airline: "Ryanair", color: "#003580", logoText: "FR", route: "London (STN) - Rome (FCO)", model: "Boeing 737 MAX 8", reg: "EI-HIM", squawk: "6321", distance: "1,430 km", eta: "2 saat 10 dk", vspeed: "+40 ft/min", heading: "145° SE", coords: "51.8850° N, 0.2350° E", temp: "-49°C", wind: "Tailwind 55 km/h", country: "İngiltere / İtalya", speed: 860, altitude: 37000 },
+            { code: "RYR8821", airline: "Ryanair", color: "#003580", logoText: "FR", route: "Vienna (VIE) - Barcelona (BCN)", model: "Boeing 737-800", reg: "9H-QEA", squawk: "1455", distance: "1,360 km", eta: "2 saat 5 dk", vspeed: "0 ft/min", heading: "240° SW", coords: "48.2082° N, 16.3738° E", temp: "-47°C", wind: "Tailwind 40 km/h", country: "Avusturya / İspanya", speed: 855, altitude: 36500 }
         ];
 
         let liveInterval = null;
@@ -413,8 +433,14 @@
                             </div>
                         </div>
                         <div class="flight-metrics">
-                            <div class="metric-speed">⚡ ${flight.speed} km/h</div>
-                            <div class="metric-altitude">📏 ${flight.altitude.toLocaleString()} ft</div>
+                            <div class="metric-row speed">
+                                <svg class="svg-icon" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                ${flight.speed} km/h
+                            </div>
+                            <div class="metric-row altitude">
+                                <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+                                ${flight.altitude.toLocaleString()} ft
+                            </div>
                         </div>
                     </div>
                 `;
@@ -426,8 +452,17 @@
             document.getElementById('modal-code').innerText = flight.code;
             document.getElementById('modal-airline').innerText = flight.airline;
             document.getElementById('modal-route').innerText = flight.route;
+            document.getElementById('modal-distance').innerText = flight.distance;
+            document.getElementById('modal-eta').innerText = flight.eta;
+            document.getElementById('modal-vspeed').innerText = flight.vspeed;
+            document.getElementById('modal-heading').innerText = flight.heading;
             document.getElementById('modal-model').innerText = flight.model;
+            document.getElementById('modal-reg').innerText = flight.reg;
+            document.getElementById('modal-squawk').innerText = flight.squawk;
+            document.getElementById('modal-coords').innerText = flight.coords;
             document.getElementById('modal-country').innerText = flight.country;
+            document.getElementById('modal-temp').innerText = flight.temp;
+            document.getElementById('modal-wind').innerText = flight.wind;
             
             updateModalMetrics();
             document.getElementById('flight-modal').style.display = 'flex';
@@ -442,33 +477,4 @@
 
         function updateModalMetrics() {
             if (!selectedFlight) return;
-            document.getElementById('modal-speed').innerText = selectedFlight.speed + ' km/h';
-            document.getElementById('modal-altitude').innerText = selectedFlight.altitude.toLocaleString() + ' ft';
-        }
-
-        function closeModal() {
-            document.getElementById('flight-modal').style.display = 'none';
-            if (liveInterval) clearInterval(liveInterval);
-        }
-
-        function filterFlights() {
-            const query = document.getElementById('flight-code').value.trim().toUpperCase();
-            if (!query) {
-                renderFeed(flightsData);
-                document.getElementById('status-text').innerText = "Avrupa Hava Sahası: Senkronize ve Aktif";
-                return;
-            }
-            const filtered = flightsData.filter(f => 
-                f.code.toUpperCase().includes(query) || 
-                f.airline.toUpperCase().includes(query) || 
-                f.route.toUpperCase().includes(query)
-            );
-            renderFeed(filtered);
-            document.getElementById('status-text').innerText = `${filtered.length} uçuş filtrelendi`;
-        }
-
-        renderFeed(flightsData);
-    </script>
-</body>
-            </html>
-            
+            document.
