@@ -126,8 +126,11 @@
             statusMsg.innerText = 'Uçaklar taranıyor, lütfen bekleyin...';
             card.style.display = 'none';
 
-            // Güvenli ve direkt veri çekme yöntemi
-            fetch('https://opensky-network.org/api/states/all')
+            // CORS engeline takılmamak için köprü (proxy) kullanıyoruz
+            const targetUrl = 'https://opensky-network.org/api/states/all';
+            const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl);
+
+            fetch(proxyUrl)
                 .then(res => res.json())
                 .then(data => {
                     if (!data || !data.states) {
