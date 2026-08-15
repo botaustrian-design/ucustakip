@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Uçuş Takip</title>
+    <title>Avrupa Uçuş Takip</title>
     <style>
         body {
             margin: 0;
@@ -26,7 +26,8 @@
             gap: 15px;
         }
 
-        h2 { text-align: center; margin-bottom: 5px; color: #60a5fa; }
+        h2 { text-align: center; margin: 0; color: #60a5fa; font-size: 1.4em; }
+        .subtitle { text-align: center; font-size: 0.85em; color: #94a3b8; margin-bottom: 5px; }
 
         .search-box {
             display: flex;
@@ -63,115 +64,136 @@
 
         button:active { background: #2563eb; }
 
-        .card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(12px);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            display: none;
-        }
-
-        .card h3 { margin-top: 0; color: #93c5fd; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 8px; }
-        
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-size: 1.05em;
-        }
-
-        .info-row:last-child { border-bottom: none; }
-        
         #status-msg {
             text-align: center;
-            margin-top: 20px;
             opacity: 0.8;
-            font-size: 0.95em;
+            font-size: 0.9em;
+            padding: 10px;
         }
+
+        /* Uçuş Kartları Listesi */
+        .flight-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 65vh;
+            overflow-y: auto;
+        }
+
+        .flight-card {
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 12px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .flight-info h4 { margin: 0 0 5px 0; color: #93c5fd; font-size: 1.05em; }
+        .flight-info p { margin: 0; font-size: 0.85em; color: #cbd5e1; }
+
+        .flight-stats {
+            text-align: right;
+            font-size: 0.9em;
+        }
+
+        .flight-stats div { color: #34d399; font-weight: bold; }
+        .flight-stats span { color: #fbbf24; font-size: 0.85em; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>Uçuş Bilgi Ekranı</h2>
+        <h2>Avrupa Hava Sahası</h2>
+        <div class="subtitle">Canlı Uçuş ve Hız/Yükseklik Takibi</div>
+
         <div class="search-box">
-            <input type="text" id="flight-code" placeholder="Uçuş kodu yazın (Örn: THY, DLH, BAW)">
-            <button onclick="searchFlight()">Sorgula</button>
+            <input type="text" id="flight-code" placeholder="Uçuş kodu ara (Örn: DLH, THY)..." onkeyup="filterFlights()">
+            <button onclick="filterFlights()">Ara</button>
         </div>
 
-        <div id="status-msg">Uçuş kodunu yazıp sorgulayabilirsiniz.</div>
+        <div id="status-msg">Avrupa üzerindeki uçaklar yükleniyor...</div>
 
-        <div class="card" id="result-card">
-            <h3 id="flight-title">Uçuş Detayı</h3>
-            <div class="info-row"><span>Ülke / Kaynak:</span> <strong id="f-country">-</strong></div>
-            <div class="info-row"><span>Anlık Hız:</span> <strong id="f-speed">-</strong></div>
-            <div class="info-row"><span>Anlık Yükseklik:</span> <strong id="f-altitude">-</strong></div>
-            <div class="info-row"><span>Enlem / Boylam:</span> <strong id="f-coords">-</strong></div>
-        </div>
+        <div class="flight-list" id="list-container"></div>
     </div>
 
     <script>
-        function searchFlight() {
-            const query = document.getElementById('flight-code').value.trim().toUpperCase();
-            const statusMsg = document.getElementById('status-msg');
-            const card = document.getElementById('result-card');
+        let allEuropeanFlights = [];
 
-            if (!query) {
-                alert('Lütfen bir uçuş kodu girin!');
-                return;
-            }
-
-            statusMsg.innerText = 'Uçaklar taranıyor, lütfen bekleyin...';
-            card.style.display = 'none';
-
-            // CORS engeline takılmamak için köprü (proxy) kullanıyoruz
-            const targetUrl = 'https://opensky-network.org/api/states/all';
+        function fetchEuropeanFlights() {
+            // Sadece Avrupa koordinatları (Güney, Kuzey, Batı, Doğu)
+            const euroBBox = 'lamin=35&lamax=71&lomin=-25&lomax=45';
+            const targetUrl = `https://opensky-network.org/api/states/all?${euroBBox}`;
             const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl);
 
             fetch(proxyUrl)
                 .then(res => res.json())
                 .then(data => {
                     if (!data || !data.states) {
-                        statusMsg.innerText = 'Veri alınamadı. Tekrar deneyin.';
+                        document.getElementById('status-msg').innerText = 'Veri alınamadı. Lütfen tekrar deneyin.';
                         return;
                     }
 
-                    const found = data.states.find(flight => {
-                        const callsign = flight[1] ? flight[1].trim().toUpperCase() : '';
-                        return callsign.includes(query);
-                    });
-
-                    if (found) {
-                        statusMsg.innerText = '';
-                        card.style.display = 'block';
-
-                        const callsign = found[1] ? found[1].trim() : 'Bilinmiyor';
-                        const country = found[2] || 'Bilinmiyor';
-                        const lon = found[5];
-                        const lat = found[6];
-                        
-                        // Hız (m/s -> km/h)
-                        const speedKmh = found[9] ? Math.round(found[9] * 3.6) : 0;
-                        
-                        // Yükseklik (Metre -> Feet)
-                        const altitudeFt = found[7] ? Math.round(found[7] * 3.28084) : 0;
-
-                        document.getElementById('flight-title').innerText = 'Uçuş: ' + callsign;
-                        document.getElementById('f-country').innerText = country;
-                        document.getElementById('f-speed').innerText = speedKmh + ' km/h';
-                        document.getElementById('f-altitude').innerText = altitudeFt.toLocaleString() + ' ft';
-                        document.getElementById('f-coords').innerText = lat ? `${lat.toFixed(2)}, ${lon.toFixed(2)}` : 'Bilinmiyor';
-                    } else {
-                        statusMsg.innerText = `"${query}" koduna ait şu an havada aktif bir uçuş bulunamadı.`;
-                        card.style.display = 'none';
-                    }
+                    allEuropeanFlights = data.states;
+                    document.getElementById('status-msg').innerText = `Avrupa'da aktif ${allEuropeanFlights.length} uçuş bulundu.`;
+                    displayFlights(allEuropeanFlights.slice(0, 30)); // İlk 30 uçağı göster
                 })
                 .catch(err => {
-                    statusMsg.innerText = 'Bağlantı hatası oluştu. İnternetinizi kontrol edin.';
+                    document.getElementById('status-msg').innerText = 'Bağlantı hatası oluştu.';
                 });
         }
+
+        function displayFlights(flights) {
+            const container = document.getElementById('list-container');
+            container.innerHTML = '';
+
+            if (flights.length === 0) {
+                container.innerHTML = '<div style="text-align:center; opacity:0.6;">Uçuş bulunamadı.</div>';
+                return;
+            }
+
+            flights.forEach(flight => {
+                const callsign = flight[1] ? flight[1].trim() : 'Bilinmiyor';
+                const country = flight[2] || 'Bilinmiyor';
+                const speedKmh = flight[9] ? Math.round(flight[9] * 3.6) : 0;
+                const altitudeFt = flight[7] ? Math.round(flight[7] * 3.28084) : 0;
+
+                container.innerHTML += `
+                    <div class="flight-card">
+                        <div class="flight-info">
+                            <h4>✈️ ${callsign}</h4>
+                            <p>🌍 Ülke: ${country}</p>
+                        </div>
+                        <div class="flight-stats">
+                            <div>⚡ ${speedKmh} km/h</div>
+                            <span>📏 ${altitudeFt.toLocaleString()} ft</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function filterFlights() {
+            const query = document.getElementById('flight-code').value.trim().toUpperCase();
+            if (!query) {
+                displayFlights(allEuropeanFlights.slice(0, 30));
+                document.getElementById('status-msg').innerText = `Avrupa'da aktif ${allEuropeanFlights.length} uçuş bulundu.`;
+                return;
+            }
+
+            const filtered = allEuropeanFlights.filter(flight => {
+                const callsign = flight[1] ? flight[1].trim().toUpperCase() : '';
+                return callsign.includes(query);
+            });
+
+            document.getElementById('status-msg').innerText = `"${query}" için ${filtered.length} sonuç bulundu.`;
+            displayFlights(filtered);
+        }
+
+        // Sayfa açıldığında veriyi çek
+        fetchEuropeanFlights();
     </script>
 </body>
 </html>
