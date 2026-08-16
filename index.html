@@ -8,41 +8,56 @@
         :root { --bg-primary: #070d1a; --accent-blue: #38bdf8; --accent-green: #34d399; --text-main: #f8fafc; }
         body { margin: 0; padding: 20px; font-family: sans-serif; background: var(--bg-primary); color: var(--text-main); }
         .flight-card { background: #162033; border: 1px solid #334155; padding: 15px; border-radius: 12px; margin-bottom: 10px; }
-        .loading { color: var(--accent-blue); text-align: center; font-weight: bold; }
+        .status-box { text-align: center; font-weight: bold; margin-bottom: 15px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
     <h2 style="text-align:center; color:var(--accent-blue);">Canlı Radar (Gerçek Veri)</h2>
-    <div id="status" class="loading">Sunucudan gerçek veriler çekiliyor...</div>
+    <div id="status" class="status-box" style="color: var(--accent-blue);">Sunucuya bağlanılıyor...</div>
     <div id="feed-container"></div>
 
     <script>
         async function fetchLiveData() {
+            const statusEl = document.getElementById('status');
+            const container = document.getElementById('feed-container');
+            
             try {
-                document.getElementById('status').innerText = "Veri alınıyor...";
-                // OpenSky API'sine allorigins üzerinden erişiyoruz
-                const response = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://opensky-network.org/api/states/all'));
-                const json = await response.json();
-                const data = JSON.parse(json.contents);
+                statusEl.innerText = "Veri alınıyor...";
                 
-                const container = document.getElementById('feed-container');
-                container.innerHTML = '';
-                document.getElementById('status').innerText = "Güncel: " + new Date().toLocaleTimeString();
+                // İstek 8 saniyeden uzun sürerse kilitlenmeyi önlemek için iptal et
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-                // İlk 20 THY/Lufthansa/Austrian uçağını filtrele
+                const response = await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent('https://opensky-network.org/api/states/all'), {
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+
+                if (!response.ok) throw new Error("Sunucu yanıt vermedi");
+                
+                const data = await response.json();
+                
+                if (!data || !data.states) {
+                    throw new Error("Veri alınamadı");
+                }
+
+                container.innerHTML = '';
+                statusEl.innerText = "Canlı Veri Güncellendi: " + new Date().toLocaleTimeString();
+                statusEl.style.color = "var(--accent-green)";
+
                 let count = 0;
                 data.states.forEach(s => {
                     const callsign = s[1] ? s[1].trim() : "";
                     if ((callsign.startsWith('THY') || callsign.startsWith('TK') || callsign.startsWith('DLH') || callsign.startsWith('LH') || callsign.startsWith('AUA') || callsign.startsWith('OS')) && count < 20) {
                         
-                        const speed = s[9] ? Math.round(s[9] * 3.6) : 0; // m/s to km/h
-                        const alt = s[7] ? Math.round(s[7] * 3.28084) : 0; // meters to ft
+                        const speed = s[9] ? Math.round(s[9] * 3.6) : 0; 
+                        const alt = s[7] ? Math.round(s[7] * 3.28084) : 0; 
                         
-                        if (speed > 0) { // Sadece havada olanları göster
+                        if (speed > 0) { 
                             container.innerHTML += `
                                 <div class="flight-card">
-                                    <div style="font-weight:bold; font-size:1.2rem;">${callsign}</div>
-                                    <div style="color:var(--accent-green);">Hız: ${speed} km/h</div>
+                                    <div style="font-weight:bold; font-size:1.2rem; color: #fff;">${callsign}</div>
+                                    <div style="color:var(--accent-green); margin-top:5px;">Hız: ${speed} km/h</div>
                                     <div style="color:var(--accent-blue);">İrtifa: ${alt.toLocaleString()} ft</div>
                                 </div>
                             `;
@@ -50,14 +65,19 @@
                         }
                     }
                 });
+
+                if (count === 0) {
+                    statusEl.innerText = "Şu an bu havayollarına ait aktif uçuş bulunamadı.";
+                    statusEl.style.color = "#fbbf24";
+                }
+
             } catch (err) {
-                document.getElementById('status').innerText = "Bağlantı hatası: Sunucu cevap vermedi.";
+                statusEl.innerText = "Bağlantı Engellendi: OpenSky sunucusu tarayıcı isteklerini reddetti.";
+                statusEl.style.color = "#ef4444";
             }
         }
 
-        // Her 15 saniyede bir veriyi tazele
         fetchLiveData();
-        setInterval(fetchLiveData, 15000);
     </script>
 </body>
 </html>
