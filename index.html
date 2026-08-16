@@ -3,72 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AeroRadar - Gerçek Canlı Veri</title>
+    <title>AeroRadar Pro - Canlı Gerçek Radar</title>
     <style>
-        body { background: #070d1a; color: #fff; font-family: sans-serif; margin: 0; padding: 20px; }
-        .flight-card { background: #162033; border: 1px solid #334155; padding: 15px; border-radius: 12px; margin-bottom: 10px; }
-        .status { text-align: center; font-weight: bold; margin-bottom: 15px; color: #38bdf8; font-size: 0.9rem; }
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background: #070d1a;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: #fff;
+            overflow: hidden;
+        }
+        .header {
+            padding: 12px;
+            text-align: center;
+            background: #0f172a;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        h2 {
+            margin: 0;
+            color: #38bdf8;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+        }
+        p {
+            margin: 4px 0 0 0;
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+        .radar-container {
+            width: 100%;
+            height: calc(100vh - 60px);
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
     </style>
 </head>
 <body>
-    <h2 style="text-align:center; color:#38bdf8;">AeroRadar Gerçek Zamanlı</h2>
-    <div id="status" class="status">Bağlantı kuruluyor...</div>
-    <div id="feed"></div>
 
-    <script>
-        async function getRealFlights() {
-            const statusEl = document.getElementById('status');
-            const feed = document.getElementById('feed');
-            
-            try {
-                statusEl.innerText = "Gerçek veriler indiriliyor...";
-                
-                // Alternatif köprü (proxy) ile OpenSky gerçek verisini çekiyoruz
-                const res = await fetch('https://corsproxy.io/?' + encodeURIComponent('https://opensky-network.org/api/states/all'));
-                if (!res.ok) throw new Error("Sunucu erişimi engelledi");
-                
-                const data = await res.json();
-                if (!data || !data.states) throw new Error("Veri yok");
+    <div class="header">
+        <h2>AeroRadar Pro</h2>
+        <p>GERÇEK ZAMANLI HAVA SAHASI RADARI</p>
+    </div>
 
-                feed.innerHTML = '';
-                statusEl.innerText = "Canlı Veri Aktif (" + new Date().toLocaleTimeString() + ")";
-                statusEl.style.color = "#34d399";
+    <div class="radar-container">
+        <!-- Dünya ve Avrupa üzerindeki %100 gerçek uçuşları anlık gösteren profesyonel radar haritası -->
+        <iframe src="https://www.flightradar24.com/simple_index.php?lat=45.0&lon=15.0&z=5&pubs=1&label=true" allowfullscreen></iframe>
+    </div>
 
-                let count = 0;
-                data.states.forEach(s => {
-                    const callsign = s[1] ? s[1].trim() : "";
-                    if ((callsign.startsWith('THY') || callsign.startsWith('TK') || callsign.startsWith('DLH') || callsign.startsWith('LH') || callsign.startsWith('AUA') || callsign.startsWith('OS')) && count < 15) {
-                        
-                        const speed = s[9] ? Math.round(s[9] * 3.6) : 0; // m/s -> km/h çevrimi
-                        const alt = s[7] ? Math.round(s[7] * 3.28084) : 0; // metre -> ft çevrimi
-
-                        if (speed > 0) {
-                            feed.innerHTML += `
-                                <div class="flight-card">
-                                    <div style="font-weight:bold; font-size:1.1rem; color:#fff;">${callsign}</div>
-                                    <div style="color:#34d399; margin-top:5px;">Gerçek Hız: ${speed} km/h</div>
-                                    <div style="color:#38bdf8;">Gerçek İrtifa: ${alt.toLocaleString()} ft</div>
-                                </div>
-                            `;
-                            count++;
-                        }
-                    }
-                });
-
-                if (count === 0) {
-                    statusEl.innerText = "Şu an bu havayollarının havadaki uçuşları açık veri tabanında görünmüyor.";
-                    statusEl.style.color = "#fbbf24";
-                }
-
-            } catch (e) {
-                statusEl.innerText = "Tarayıcı veya sunucu kısıtlaması nedeniyle doğrudan gerçek veri alınamadı.";
-                statusEl.style.color = "#ef4444";
-            }
-        }
-
-        getRealFlights();
-        // Her 20 saniyede bir gerçek veriyi güncellemeye çalış
-        setInterval(getRealFlights, 20000);
-    </script>
 </body>
 </html>
