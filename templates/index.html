@@ -4,240 +4,266 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AeroRadar Pro</title>
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
-            --bg-main: #0b0f19; --bg-container: #0f172a; --header-bg: #1e293b;
-            --text-main: #f8fafc; --text-muted: #94a3b8; --border-color: #334155; --accent: #38bdf8;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --border: #334155;
         }
         body.theme-light {
-            --bg-main: #f1f5f9; --bg-container: #ffffff; --header-bg: #e2e8f0;
-            --text-main: #0f172a; --text-muted: #64748b; --border-color: #cbd5e1; --accent: #0284c7;
+            --bg: #f1f5f9;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --accent: #2563eb;
+            --border: #e2e8f0;
         }
-        body.theme-dark-blue {
-            --bg-main: #020617; --bg-container: #090d16; --header-bg: #0f172a;
-            --text-main: #e2e8f0; --text-muted: #64748b; --border-color: #1e293b; --accent: #60a5fa;
+        body.theme-green {
+            --bg: #064e3b;
+            --card-bg: #065f46;
+            --text: #ecfdf5;
+            --text-muted: #a7f3d0;
+            --accent: #10b981;
+            --border: #047857;
         }
-        body { background: var(--bg-main); color: var(--text-main); font-family: sans-serif; display: flex; justify-content: center; min-height: 100vh; }
-        .app-container { width: 100%; max-width: 480px; background: var(--bg-container); min-height: 100vh; display: flex; flex-direction: column; position: relative; overflow-x: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--header-bg); border-bottom: 1px solid var(--border-color); }
-        .header h1 { font-size: 1.25rem; color: var(--accent); font-weight: 800; }
-        .header p { font-size: 0.55rem; color: #22c55e; letter-spacing: 1.2px; text-transform: uppercase; font-weight: 700; }
-        .header-settings-btn { background: var(--bg-container); border: 1px solid var(--border-color); color: var(--accent); padding: 6px 12px; border-radius: 10px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
-        .search-box-container { padding: 12px 20px; background: var(--header-bg); border-bottom: 1px solid var(--border-color); }
-        .search-input, .settings-input { width: 100%; padding: 10px 14px; background: var(--bg-container); border: 1px solid var(--border-color); border-radius: 12px; color: var(--text-main); font-size: 0.9rem; outline: none; }
-        .stats-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 12px 20px 8px 20px; background: var(--header-bg); }
-        .stat-box { background: var(--bg-container); border: 1px solid var(--border-color); border-radius: 12px; padding: 8px; text-align: center; }
-        .stat-box .title { font-size: 0.65rem; color: var(--text-muted); margin-bottom: 2px; }
-        .stat-box .value { font-size: 0.9rem; font-weight: 700; color: var(--text-main); }
-        .stat-box .value.green { color: #22c55e; }
-        .stat-box .value.blue { color: var(--accent); }
-        .filter-chips { display: flex; gap: 8px; padding: 0 20px 12px 20px; background: var(--header-bg); border-bottom: 1px solid var(--border-color); overflow-x: auto; scrollbar-width: none; }
-        .filter-chips::-webkit-scrollbar { display: none; }
-        .chip { background: var(--bg-container); border: 1px solid var(--border-color); color: var(--text-muted); padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
-        .chip.active { background: var(--accent); color: var(--bg-container); border-color: var(--accent); font-weight: 700; }
-        .tab-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px 20px; background: var(--header-bg); margin-bottom: 10px; border-bottom: 1px solid var(--border-color); }
-        .tab-btn { background: var(--bg-container); border: 1px solid var(--border-color); color: var(--text-muted); padding: 9px; border-radius: 12px; font-weight: 600; font-size: 0.82rem; cursor: pointer; text-align: center; }
-        .tab-btn.active { background: var(--accent); color: var(--bg-container); border-color: var(--accent); font-weight: 700; }
-        .content-section { flex: 1; padding: 0 20px 20px 20px; overflow-y: auto; display: flex; flex-direction: column; }
-        .flight-card { background: var(--header-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 12px 14px; margin-bottom: 10px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        .flight-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
-        .flight-left-info { display: flex; align-items: center; gap: 10px; }
-        .airline-logo { width: 38px; height: 38px; background: var(--bg-container); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.65rem; text-align: center; }
-        .callsign { font-size: 0.95rem; font-weight: 800; color: var(--text-main); }
-        .route-badge { font-size: 0.72rem; color: var(--accent); font-weight: 700; background: rgba(56, 189, 248, 0.1); padding: 2px 6px; border-radius: 6px; display: inline-block; margin-top: 2px; }
-        .airline-name { font-size: 0.65rem; color: var(--text-muted); margin-top: 1px; }
-        .speed { font-size: 0.95rem; font-weight: 800; color: var(--accent); text-align: right; }
-        .alt-text { font-size: 0.7rem; color: var(--text-muted); text-align: right; margin-top: 1px; }
-        .progress-container { margin-top: 8px; }
-        .progress-info { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-muted); margin-bottom: 3px; }
-        .progress-bar-bg { width: 100%; height: 5px; background: var(--border-color); border-radius: 3px; overflow: hidden; }
-        .progress-bar-fill { height: 100%; border-radius: 3px; }
-        .fullscreen-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: var(--bg-container); z-index: 30000; display: none; flex-direction: column; padding: 20px; overflow-y: auto; }
-        .fullscreen-modal.active { display: flex; }
-        .modal-header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-        .modal-back-btn { background: var(--header-bg); color: var(--accent); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        .settings-card { background: var(--header-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; margin-bottom: 15px; }
-        .settings-title { font-size: 0.8rem; color: var(--accent); font-weight: 700; text-transform: uppercase; margin-bottom: 6px; }
-        .settings-desc { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px; }
-        .btn-action { background: var(--accent); color: var(--bg-container); border: none; padding: 10px 16px; border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; }
-        .lang-list-container { display: flex; flex-direction: column; gap: 10px; }
-        .lang-option-card { background: var(--header-bg); border: 1px solid var(--border-color); padding: 14px 18px; border-radius: 14px; display: flex; align-items: center; gap: 15px; cursor: pointer; font-size: 1.05rem; font-weight: bold; color: var(--text-main); }
-        #map-full-wrapper { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; display: none; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: var(--bg); color: var(--text); padding: 15px; transition: background 0.3s, color 0.3s; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        h1 { font-size: 1.4rem; color: var(--accent); }
+        .subtitle { font-size: 0.75rem; color: var(--text-muted); font-weight: bold; }
+        .btn-settings { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+        
+        .search-box { width: 100%; padding: 12px 15px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-size: 0.95rem; margin-bottom: 15px; outline: none; }
+        .search-box::placeholder { color: var(--text-muted); }
+        
+        .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .stat-card { background: var(--card-bg); border: 1px solid var(--border); padding: 10px; border-radius: 10px; text-align: center; }
+        .stat-title { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 4px; }
+        .stat-value { font-size: 1.1rem; font-weight: bold; color: var(--accent); }
+        
+        .chips-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; margin-bottom: 15px; scrollbar-width: none; }
+        .chips-row::-webkit-scrollbar { display: none; }
+        .chip { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; cursor: pointer; white-space: nowrap; transition: 0.2s; }
+        .chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+        
+        .tabs-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .tab-btn { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: 10px; text-align: center; font-weight: bold; cursor: pointer; font-size: 0.9rem; }
+        .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+        
+        #map-full-wrapper { display: none; width: 100%; height: 60vh; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 15px; }
         #map-full-wrapper.active { display: block; }
-        #map { width: 100%; height: 100%; background: #f1f5f9; }
-        .map-top-bar { position: absolute; top: 15px; left: 15px; right: 15px; z-index: 10000; display: flex; justify-content: space-between; align-items: center; }
-        .cockpit-card { background: var(--header-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; margin-bottom: 15px; }
-        .cockpit-title { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
-        .cockpit-value { font-size: 1.2rem; font-weight: bold; color: var(--text-main); }
+        #map { width: 100%; height: 100%; }
+        
+        .flight-cards { display: flex; flex-direction: column; gap: 10px; }
+        .flight-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px; cursor: pointer; transition: transform 0.2s; }
+        .flight-card:active { transform: scale(0.98); }
+        .flight-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .flight-left-info { display: flex; gap: 10px; align-items: center; }
+        .airline-logo { width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem; }
+        .callsign { font-size: 1rem; font-weight: bold; }
+        .route-badge { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+        .speed { font-size: 1rem; font-weight: bold; text-align: right; }
+        .alt-text { font-size: 0.75rem; color: var(--text-muted); text-align: right; margin-top: 2px; }
+        
+        .progress-container { margin-top: 8px; }
+        .progress-bar-bg { width: 100%; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; border-radius: 3px; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--card-bg); border: 1px solid var(--border); width: 100%; max-width: 400px; border-radius: 16px; padding: 20px; max-height: 80vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .modal-title { font-size: 1.1rem; font-weight: bold; }
+        .close-btn { background: none; border: none; color: var(--text); font-size: 1.2rem; cursor: pointer; }
+        
+        .settings-group { margin-bottom: 15px; }
+        .settings-label { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px; display: block; }
+        .theme-options { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        .theme-btn { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px; border-radius: 8px; cursor: pointer; text-align: center; font-size: 0.8rem; }
+        .action-btn { width: 100%; background: var(--accent); color: #fff; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        
+        .lang-list { display: flex; flex-direction: column; gap: 8px; }
+        .lang-option-card { background: var(--bg); border: 1px solid var(--border); padding: 10px 15px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: 500; }
+        
+        .cockpit-card { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+        .cockpit-title { font-size: 0.75rem; color: var(--text-muted); }
+        .cockpit-value { font-size: 1rem; font-weight: bold; margin-top: 4px; }
     </style>
 </head>
 <body class="theme-dark">
-    <div class="app-container">
-        <div class="header">
-            <div class="header-title-area">
-                <h1>AeroRadar Pro</h1>
-                <p data-i18n="live_subtitle">● EUROPAWEIT LIVE</p>
-            </div>
-            <button class="header-settings-btn" onclick="openSettings()" data-i18n="btn_settings">⚙ Ayarlar</button>
+    <header>
+        <div>
+            <h1>AeroRadar Pro</h1>
+            <div class="subtitle" data-i18n="live_subtitle">● AVRUPA GENELİ CANLI</div>
         </div>
-        <div class="search-box-container">
-            <input type="text" id="searchInput" class="search-input" data-i18n-placeholder="search_placeholder" placeholder="Nach Flugcode suchen..." oninput="renderFilteredFlights()">
+        <button class="btn-settings" onclick="openSettings()" data-i18n="btn_settings">⚙ Ayarlar</button>
+    </header>
+
+    <input type="text" id="searchInput" class="search-box" placeholder="Uçuş koduna göre ara..." data-i18n-placeholder="search_placeholder" oninput="renderFilteredFlights()">
+
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-title" data-i18n="stat_live_flight">Canlı Uçuş</div>
+            <div class="stat-value" id="statTotal">0</div>
         </div>
-        <div class="stats-container">
-            <div class="stat-box"><div class="title" id="statTitleLabel" data-i18n="stat_live_flight">Live-Flug</div><div class="value blue" id="statTotal">0</div></div>
-            <div class="stat-box"><div class="title" data-i18n="stat_avg_speed">Ø Geschwindigkeit</div><div class="value" id="statSpeed">0 km/h</div></div>
-            <div class="stat-box"><div class="title" data-i18n="stat_region">Region</div><div class="value green" data-i18n="stat_region_name">Europa</div></div>
+        <div class="stat-card">
+            <div class="stat-title" data-i18n="stat_avg_speed">Ortalama Hız</div>
+            <div class="stat-value" id="statSpeed">0 km/h</div>
         </div>
-        <div class="filter-chips">
-            <button class="chip active" onclick="setFilter('ALL', this)" data-i18n="chip_all">Alle</button>
-            <button class="chip" onclick="setFilter('THY', this)">THY</button>
-            <button class="chip" onclick="setFilter('PGT', this)">Pegasus</button>
-            <button class="chip" onclick="setFilter('DLH', this)">Lufthansa</button>
-            <button class="chip" onclick="setFilter('BAW', this)">British</button>
-            <button class="chip" onclick="setFilter('AFR', this)">Air France</button>
-            <button class="chip" onclick="setFilter('KLM', this)">KLM</button>
-            <button class="chip" onclick="setFilter('RYR', this)">Ryanair</button>
+        <div class="stat-card">
+            <div class="stat-title" data-i18n="stat_region">Bölge</div>
+            <div class="stat-value" style="font-size:0.9rem;" data-i18n="stat_region_name">Avrupa</div>
         </div>
-        <div class="tab-buttons">
-            <button class="tab-btn active" id="btnList" onclick="switchTab('list')" data-i18n="tab_list">Live-Liste</button>
-            <button class="tab-btn" id="btnMap" onclick="switchTab('map')" data-i18n="tab_map">Live-Karte</button>
-        </div>
-        <div class="content-section"><div id="flightCardsContainer"></div></div>
+    </div>
+
+    <div class="chips-row">
+        <div class="chip active" onclick="setFilter('ALL', this)" data-i18n="chip_all">Tümü</div>
+        <div class="chip" onclick="setFilter('THY', this)">THY</div>
+        <div class="chip" onclick="setFilter('PGT', this)">Pegasus</div>
+        <div class="chip" onclick="setFilter('DLH', this)">Lufthansa</div>
+        <div class="chip" onclick="setFilter('BAW', this)">British</div>
+        <div class="chip" onclick="setFilter('AFR', this)">Air France</div>
+        <div class="chip" onclick="setFilter('KLM', this)">KLM</div>
+        <div class="chip" onclick="setFilter('RYR', this)">Ryanair</div>
+        <div class="chip" onclick="setFilter('EZY', this)">easyJet</div>
+        <div class="chip" onclick="setFilter('UAE', this)">Emirates</div>
+        <div class="chip" onclick="setFilter('QTR', this)">Qatar</div>
+    </div>
+
+    <div class="tabs-row">
+        <div id="btnList" class="tab-btn active" onclick="switchTab('list')" data-i18n="tab_list">Canlı Liste</div>
+        <div id="btnMap" class="tab-btn" onclick="switchTab('map')" data-i18n="tab_map">Canlı Harita</div>
+    </div>
+
+    <div id="map-full-wrapper">
+        <div id="map"></div>
+    </div>
+
+    <div id="flightCardsContainer" class="flight-cards">
+        <!-- Dinamik Uçuş Kartları -->
     </div>
 
     <!-- Ayarlar Modalı -->
-    <div id="settings-modal" class="fullscreen-modal">
-        <div class="modal-header-top">
-            <button class="modal-back-btn" onclick="closeSettings()" data-i18n="btn_back">← Geri</button>
-            <span style="font-weight: bold; color: var(--accent);" data-i18n="settings_title">Uygulama Ayarları</span>
-            <div></div>
-        </div>
-        <div class="settings-card">
-            <div class="settings-title" data-i18n="theme_title">Renk Tonu (Tema)</div>
-            <div class="settings-desc" data-i18n="theme_desc">Arayüz temasını değiştirin.</div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
-                <button class="btn-action" style="margin:0; background:#0b0f19; color:#fff;" onclick="changeTheme('dark')">Dark</button>
-                <button class="btn-action" style="margin:0; background:#f1f5f9; color:#0f172a; border:1px solid #cbd5e1;" onclick="changeTheme('light')">Light</button>
-                <button class="btn-action" style="margin:0; background:#020617; color:#60a5fa;" onclick="changeTheme('dark-blue')">Dark Blue</button>
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" data-i18n="settings_title">Uygulama Ayarları</div>
+                <button class="close-btn" onclick="closeSettings()">✕</button>
             </div>
-        </div>
-        <div class="settings-card">
-            <div class="settings-title" data-i18n="lang_settings_title">Dil Seçeneği</div>
-            <div class="settings-desc" data-i18n="lang_settings_desc">Uygulama dilini değiştirin.</div>
-            <button class="btn-action" onclick="openLangModal()" data-i18n="btn_open_lang">Dilleri Seç (Bayraklı)</button>
-        </div>
-        <div class="settings-card">
-            <div class="settings-title" data-i18n="notif_title">Uçuş Bildirimleri</div>
-            <div class="settings-desc" data-i18n="notif_desc">Takip etmek istediğiniz uçuş kodunu yazın.</div>
-            <input type="text" id="notifFlightInput" class="settings-input" placeholder="Örn: THY123">
-            <button class="btn-action" onclick="saveNotificationPreference()" data-i18n="btn_save_notif">Bildirimi Aktif Et</button>
+            <div class="settings-group">
+                <span class="settings-label" data-i18n="theme_title">Renk Tonu (Tema)</span>
+                <div class="theme-options">
+                    <div class="theme-btn" onclick="changeTheme('dark')">Koyu</div>
+                    <div class="theme-btn" onclick="changeTheme('light')">Açık</div>
+                    <div class="theme-btn" onclick="changeTheme('green')">Yeşil</div>
+                </div>
+            </div>
+            <div class="settings-group">
+                <span class="settings-label" data-i18n="lang_settings_title">Dil Seçeneği</span>
+                <button class="action-btn" onclick="openLangModal()" data-i18n="btn_open_lang">Dileri Aç</button>
+            </div>
+            <div class="settings-group">
+                <span class="settings-label" data-i18n="notif_title">Uçuş Bildirimleri</span>
+                <input type="text" id="notifFlightInput" class="search-box" placeholder="Uçuş kodu yazın..." style="margin-bottom:8px;">
+                <button class="action-btn" onclick="saveNotificationPreference()" data-i18n="btn_save_notif">Bildirimi Aktif Et</button>
+            </div>
         </div>
     </div>
 
     <!-- Dil Seçim Modalı -->
-    <div id="lang-modal" class="fullscreen-modal">
-        <div class="modal-header-top">
-            <button class="modal-back-btn" onclick="closeLangModal()" data-i18n="btn_back">← Geri</button>
-            <span style="font-weight: bold; color: var(--accent);" data-i18n="lang_modal_header">Dil Seçin</span>
-            <div></div>
+    <div id="lang-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" data-i18n="lang_modal_header">Dil Seçin</div>
+                <button class="close-btn" onclick="closeLangModal()">✕</button>
+            </div>
+            <div id="langListContainer" class="lang-list"></div>
         </div>
-        <div class="lang-list-container" id="langListContainer"></div>
-    </div>
-
-    <!-- Harita Modalı -->
-    <div id="map-full-wrapper">
-        <div class="map-top-bar">
-            <button class="modal-back-btn" onclick="switchTab('list')" data-i18n="btn_back">← Geri</button>
-        </div>
-        <div id="map"></div>
     </div>
 
     <!-- Detay Modalı -->
-    <div id="detail-modal" class="fullscreen-modal">
-        <div class="modal-header-top">
-            <button class="modal-back-btn" onclick="closeDetail()" data-i18n="btn_back">← Geri</button>
-            <span style="font-weight: bold; color: var(--accent);" id="modalCallsignTitle">Flugdetails</span>
-            <div></div>
+    <div id="detail-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modalCallsignTitle">Uçuş Detayları</div>
+                <button class="close-btn" onclick="closeDetail()">✕</button>
+            </div>
+            <div id="detailContent"></div>
         </div>
-        <div id="detailContent"></div>
     </div>
 
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-                const dict = {
+        const dict = {
             'tr': {
                 live_subtitle: '● AVRUPA GENELİ CANLI', btn_settings: '⚙ Ayarlar', search_placeholder: 'Uçuş koduna göre ara...',
                 stat_live_flight: 'Canlı Uçuş', stat_avg_speed: 'Ortalama Hız', stat_region: 'Bölge', stat_region_name: 'Avrupa',
-                chip_all: 'Tümü', tab_list: 'Canlı Liste', tab_map: 'Canlı Harita', btn_back: '← Geri',
-                settings_title: 'Uygulama Ayarları', theme_title: 'Renk Tonu (Tema)', theme_desc: 'Arayüz temasını değiştirin.',
-                lang_settings_title: 'Dil Seçeneği', lang_settings_desc: 'Uygulama dilini tüm arayüzle birlikte değiştirin.',
-                btn_open_lang: 'Dileri Aç', notif_title: 'Uçuş Bildirimleri', notif_desc: 'Takip edilecek uçuş kodunu girin.',
-                btn_save_notif: 'Bildirimi Aktif Et', lang_modal_header: 'Dil Seçin'
+                chip_all: 'Tümü', tab_list: 'Canlı Liste', tab_map: 'Canlı Harita',
+                settings_title: 'Uygulama Ayarları', theme_title: 'Renk Tonu (Tema)',
+                lang_settings_title: 'Dil Seçeneği', btn_open_lang: 'Dileri Aç',
+                notif_title: 'Uçuş Bildirimleri', btn_save_notif: 'Bildirimi Aktif Et', lang_modal_header: 'Dil Seçin'
             },
             'en': {
                 live_subtitle: '● EUROPAWIDE LIVE', btn_settings: '⚙ Settings', search_placeholder: 'Search by flight code...',
                 stat_live_flight: 'Live Flight', stat_avg_speed: 'Avg Speed', stat_region: 'Region', stat_region_name: 'Europe',
-                chip_all: 'All', tab_list: 'Live List', tab_map: 'Live Map', btn_back: '← Back',
-                settings_title: 'App Settings', theme_title: 'Theme Color', theme_desc: 'Change appearance theme.',
-                lang_settings_title: 'Language Option', lang_settings_desc: 'Change application language instantly.',
-                btn_open_lang: 'Open Languages', notif_title: 'Flight Notifications', notif_desc: 'Enter flight code to track.',
-                btn_save_notif: 'Enable Notification', lang_modal_header: 'Select Language'
+                chip_all: 'All', tab_list: 'Live List', tab_map: 'Live Map',
+                settings_title: 'App Settings', theme_title: 'Theme Color',
+                lang_settings_title: 'Language Option', btn_open_lang: 'Open Languages',
+                notif_title: 'Flight Notifications', btn_save_notif: 'Enable Notification', lang_modal_header: 'Select Language'
             },
             'de': {
                 live_subtitle: '● EUROPAWEIT LIVE', btn_settings: '⚙ Einstellungen', search_placeholder: 'Nach Flugcode suchen...',
                 stat_live_flight: 'Live-Flug', stat_avg_speed: 'Ø Geschwindigkeit', stat_region: 'Region', stat_region_name: 'Europa',
-                chip_all: 'Alle', tab_list: 'Live-Liste', tab_map: 'Live-Karte', btn_back: '← Zurück',
-                settings_title: 'App-Einstellungen', theme_title: 'Themenfarbe', theme_desc: 'Ändern Sie das Erscheinungsbild.',
-                lang_settings_title: 'Sprachoption', lang_settings_desc: 'Ändern Sie die Sprache sofort.',
-                btn_open_lang: 'Sprachen öffnen', notif_title: 'Flugbenachrichtigungen', notif_desc: 'Geben Sie den Flugcode ein.',
-                btn_save_notif: 'Benachrichtigung aktivieren', lang_modal_header: 'Sprache wählen'
+                chip_all: 'Alle', tab_list: 'Live-Liste', tab_map: 'Live-Karte',
+                settings_title: 'App-Einstellungen', theme_title: 'Themenfarbe',
+                lang_settings_title: 'Sprachoption', btn_open_lang: 'Sprachen öffnen',
+                notif_title: 'Flugbenachrichtigungen', btn_save_notif: 'Benachrichtigung aktivieren', lang_modal_header: 'Sprache wählen'
             },
             'fr': {
                 live_subtitle: '● EN DIRECT EN EUROPE', btn_settings: '⚙ Paramètres', search_placeholder: 'Rechercher par code...',
                 stat_live_flight: 'Vol en direct', stat_avg_speed: 'Vitesse moyenne', stat_region: 'Région', stat_region_name: 'Europe',
-                chip_all: 'Tous', tab_list: 'Liste en direct', tab_map: 'Carte en direct', btn_back: '← Retour',
-                settings_title: 'Paramètres', theme_title: 'Couleur du thème', theme_desc: 'Modifier le thème.',
-                lang_settings_title: 'Option de langue', lang_settings_desc: 'Changez la langue instantanément.',
-                btn_open_lang: 'Ouvrir les langues', notif_title: 'Notifications', notif_desc: 'Entrez le code du vol.',
-                btn_save_notif: 'Activer', lang_modal_header: 'Sélectionner la langue'
+                chip_all: 'Tous', tab_list: 'Liste en direct', tab_map: 'Carte en direct',
+                settings_title: 'Paramètres', theme_title: 'Couleur du thème',
+                lang_settings_title: 'Option de langue', btn_open_lang: 'Ouvrir les langues',
+                notif_title: 'Notifications', btn_save_notif: 'Activer', lang_modal_header: 'Sélectionner la langue'
             },
             'it': {
                 live_subtitle: '● IN DIRETTA IN EUROPA', btn_settings: '⚙ Impostazioni', search_placeholder: 'Cerca per codice...',
                 stat_live_flight: 'Volo in diretta', stat_avg_speed: 'Velocità media', stat_region: 'Regione', stat_region_name: 'Europa',
-                chip_all: 'Tutti', tab_list: 'Lista in diretta', tab_map: 'Mappa in diretta', btn_back: '← Indietro',
-                settings_title: 'Impostazioni App', theme_title: 'Colore Tema', theme_desc: 'Modifica il tema grafico.',
-                lang_settings_title: 'Opzione Lingua', lang_settings_desc: 'Cambia istantaneamente la lingua.',
-                btn_open_lang: 'Apri Lingue', notif_title: 'Notifiche Volo', notif_desc: 'Inserisci il codice.',
-                btn_save_notif: 'Attiva Notifica', lang_modal_header: 'Seleziona Lingua'
+                chip_all: 'Tutti', tab_list: 'Lista in diretta', tab_map: 'Mappa in diretta',
+                settings_title: 'Impostazioni App', theme_title: 'Colore Tema',
+                lang_settings_title: 'Opzione Lingua', btn_open_lang: 'Apri Lingue',
+                notif_title: 'Notifiche Volo', btn_save_notif: 'Attiva Notifica', lang_modal_header: 'Seleziona Lingua'
             },
             'ru': {
                 live_subtitle: '● В ПРЯМОМ ЭФИРЕ В ЕВРОПЕ', btn_settings: '⚙ Настройки', search_placeholder: 'Поиск по коду...',
                 stat_live_flight: 'Рейс в прямом эфире', stat_avg_speed: 'Ср. скорость', stat_region: 'Регион', stat_region_name: 'Европа',
-                chip_all: 'Все', tab_list: 'Список рейсов', tab_map: 'Карта рейсов', btn_back: '← Назад',
-                settings_title: 'Настройки', theme_title: 'Цветовая тема', theme_desc: 'Измените тему оформления.',
-                lang_settings_title: 'Язык', lang_settings_desc: 'Мгновенно измените язык.',
-                btn_open_lang: 'Открыть языки', notif_title: 'Уведомления', notif_desc: 'Введите код рейса.',
-                btn_save_notif: 'Включить', lang_modal_header: 'Выберите язык'
+                chip_all: 'Все', tab_list: 'Список рейсов', tab_map: 'Карта рейсов',
+                settings_title: 'Настройки', theme_title: 'Цветовая тема',
+                lang_settings_title: 'Язык', btn_open_lang: 'Открыть языки',
+                notif_title: 'Уведомления', btn_save_notif: 'Включить', lang_modal_header: 'Выберите язык'
             },
             'ar': {
                 live_subtitle: '● بث مباشر في أوروبا', btn_settings: '⚙ الإعدادات', search_placeholder: 'البحث برمز الرحلة...',
                 stat_live_flight: 'رحلة مباشرة', stat_avg_speed: 'متوسط السرعة', stat_region: 'المنطقة', stat_region_name: 'أوروبا',
-                chip_all: 'الكل', tab_list: 'قائمة الرحلات', tab_map: 'خريطة الرحلات', btn_back: '← رجوع',
-                settings_title: 'إعدادات التطبيق', theme_title: 'لون المظهر', theme_desc: 'تغيير مظهر التطبيق.',
-                lang_settings_title: 'لغة التطبيق', lang_settings_desc: 'تغيير لغة التطبيق فوراً.',
-                btn_open_lang: 'فتح اللغات', notif_title: 'إشعارات الرحلات', notif_desc: 'أدخل رمز الرحلة.',
-                btn_save_notif: 'تفعيل الإشعار', lang_modal_header: 'اختر اللغة'
+                chip_all: 'الكل', tab_list: 'قائمة الرحلات', tab_map: 'خريطة الرحلات',
+                settings_title: 'إعدادات التطبيق', theme_title: 'لون المظهر',
+                lang_settings_title: 'لغة التطبيق', btn_open_lang: 'فتح اللغات',
+                notif_title: 'إشعارات الرحلات', btn_save_notif: 'تفعيل الإشعار', lang_modal_header: 'اختر اللغة'
             },
             'hi': {
                 live_subtitle: '● यूरोप लाइव', btn_settings: '⚙ सेटिंग', search_placeholder: 'उड़ान कोड खोजें...',
                 stat_live_flight: 'लाइव उड़ान', stat_avg_speed: 'औसत गति', stat_region: 'क्षेत्र', stat_region_name: 'यूरोप',
-                chip_all: 'सभी', tab_list: 'लाइव सूची', tab_map: 'लाइव मानचित्र', btn_back: '← वापस',
-                settings_title: 'ऐप सेटिंग', theme_title: 'थीम रंग', theme_desc: 'थीम बदलें।',
-                lang_settings_title: 'भाषा विकल्प', lang_settings_desc: 'भाषा बदलें।',
-                btn_open_lang: 'भाषाएँ खोलें', notif_title: 'उड़ान सूचना', notif_desc: 'कोड दर्ज करें।',
-                btn_save_notif: 'सक्रिय करें', lang_modal_header: 'भाषा चुनें'
+                chip_all: 'सभी', tab_list: 'लाइव सूची', tab_map: 'लाइव मानचित्र',
+                settings_title: 'ऐप सेटिंग', theme_title: 'थीम रंग',
+                lang_settings_title: 'भाषा विकल्प', btn_open_lang: 'भाषाएँ खोलें',
+                notif_title: 'उड़ान सूचना', btn_save_notif: 'सक्रिय करें', lang_modal_header: 'भाषा चुनें'
             }
         };
 
@@ -258,33 +284,19 @@
         let map = null;
         let markers = {};
 
-        function generateFlights() {
-            const airlines = [
-                { code: 'THY', name: 'Turkish Airlines', route: 'IST ➔ LHR' },
-                { code: 'PGT', name: 'Pegasus Airlines', route: 'SAW ➔ CDG' },
-                { code: 'DLH', name: 'Lufthansa', route: 'FRA ➔ JFK' },
-                { code: 'BAW', name: 'British Airways', route: 'LHR ➔ DXB' },
-                { code: 'AFR', name: 'Air France', route: 'CDG ➔ AMS' },
-                { code: 'KLM', name: 'KLM Royal Dutch', route: 'AMS ➔ VIE' },
-                { code: 'RYR', name: 'Ryanair', route: 'BER ➔ BCN' }
-            ];
-
-            let list = [];
-            for(let i=1; i<=35; i++) {
-                let airline = airlines[Math.floor(Math.random() * airlines.length)];
-                list.push({
-                    id: i,
-                    callsign: airline.code + Math.floor(100 + Math.random() * 900),
-                    airlineName: airline.name,
-                    route: airline.route,
-                    speed: Math.floor(600 + Math.random() * 300),
-                    alt: Math.floor(30000 + Math.random() * 10000),
-                    progress: Math.floor(20 + Math.random() * 70),
-                    lat: 40 + (Math.random() * 10 - 5),
-                    lon: 10 + (Math.random() * 20 - 10)
-                });
-            }
-            flightsData = list;
+        function fetchLiveFlights() {
+            fetch('/api/data')
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        flightsData = data;
+                        renderFilteredFlights();
+                        if (map && document.getElementById('map-full-wrapper').classList.contains('active')) {
+                            initMap();
+                        }
+                    }
+                })
+                .catch(err => console.error("Canlı veri çekilemedi:", err));
         }
 
         function setLanguage(lang) {
@@ -320,114 +332,122 @@
             }
             if(filtered.length === 0) {
                 container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:30px;">Uçuş bulunamadı.</div>`;
-                return;
-            }
-            filtered.forEach(f => {
-                let card = document.createElement('div');
-                card.className = 'flight-card';
-                card.onclick = () => openDetail(f);
-                card.innerHTML = `
-                    <div class="flight-top">
-                        <div class="flight-left-info">
-                            <div class="airline-logo">${f.callsign.substring(0,3)}</div>
-                            <div>
-                                <div class="callsign">${f.callsign}</div>
-                                <div class="route-badge">${f.route}</div>
-                                <div class="airline-name">${f.airlineName}</div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="speed">${f.speed} <span style="font-size:0.6rem">km/h</span></div>
-                            <div class="alt-text">${f.alt} ft</div>
-                        </div>
+        return;
+    }
+    filtered.forEach(f => {
+        let card = document.createElement('div');
+        card.className = 'flight-card';
+        card.onclick = () => openDetail(f);
+        card.innerHTML = `
+            <div class="flight-top">
+                <div class="flight-left-info">
+                    <div class="airline-logo" style="background: ${f.brandColor}; color: #fff;">${f.callsign.substring(0,3)}</div>
+                    <div>
+                        <div class="callsign">${f.callsign}</div>
+                        <div class="route-badge">${f.airlineName}</div>
                     </div>
-                    <div class="progress-container">
-                        <div class="progress-info"><span>Rota İlerlemesi</span><span>${f.progress}%</span></div>
-                        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${f.progress}%; background: var(--accent);"></div></div>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function setFilter(filter, el) {
-            currentFilter = filter;
-            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-            el.classList.add('active');
-            renderFilteredFlights();
-        }
-
-        function switchTab(tab) {
-            if(tab === 'map') {
-                document.getElementById('map-full-wrapper').classList.add('active');
-                document.getElementById('btnMap').classList.add('active');
-                document.getElementById('btnList').classList.remove('active');
-                initMap();
-            } else {
-                document.getElementById('map-full-wrapper').classList.remove('active');
-                document.getElementById('btnList').classList.add('active');
-                document.getElementById('btnMap').classList.remove('active');
-            }
-        }
-
-        function initMap() {
-            if(!map) {
-                map = L.map('map').setView([48.5, 14.5], 5);
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
-            } else {
-                map.invalidateSize();
-            }
-            Object.values(markers).forEach(m => map.removeLayer(m));
-            markers = {};
-            flightsData.forEach(f => {
-                let marker = L.marker([f.lat, f.lon]).addTo(map);
-                marker.bindPopup(`<b>${f.callsign}</b><br>${f.airlineName}<br>Hız: ${f.speed} km/h`);
-                markers[f.id] = marker;
-            });
-        }
-
-        function openSettings() { document.getElementById('settings-modal').classList.add('active'); }
-        function closeSettings() { document.getElementById('settings-modal').classList.remove('active'); }
-        function openLangModal() {
-            const listContainer = document.getElementById('langListContainer');
-            listContainer.innerHTML = '';
-            languages.forEach(l => {
-                let card = document.createElement('div');
-                card.className = 'lang-option-card';
-                card.innerHTML = `<span>${l.flag}</span> <span>${l.name}</span>`;
-                card.onclick = () => setLanguage(l.code);
-                listContainer.appendChild(card);
-            });
-            document.getElementById('lang-modal').classList.add('active');
-        }
-        function closeLangModal() { document.getElementById('lang-modal').classList.remove('active'); }
-        function changeTheme(themeName) { document.body.className = 'theme-' + themeName; closeSettings(); }
-        function saveNotificationPreference() {
-            let val = document.getElementById('notifFlightInput').value;
-            if(val) { alert(val + ' için bildirimler aktif edildi!'); document.getElementById('notifFlightInput').value = ''; }
-            else { alert('Lütfen uçuş kodu yazın.'); }
-        }
-        function openDetail(flight) {
-            document.getElementById('modalCallsignTitle').innerText = flight.callsign + ' Detayları';
-            document.getElementById('detailContent').innerHTML = `
-                <div class="cockpit-card">
-                    <div class="cockpit-title">Havayolu Şirketi</div>
-                    <div class="cockpit-value">${flight.airlineName}</div>
                 </div>
-                <div class="cockpit-card">
-                    <div class="cockpit-title">Güzergah</div>
-                    <div class="cockpit-value">${flight.route}</div>
+                <div>
+                    <div class="speed" style="color: ${f.brandColor};">${f.speed} <span style="font-size:0.6rem">km/h</span></div>
+                    <div class="alt-text">${f.alt} ft</div>
                 </div>
-                <div class="cockpit-card">
-                    <div class="cockpit-title">Anlık Hız / İrtifa</div>
-                    <div class="cockpit-value">${flight.speed} km/h / ${flight.alt} ft</div>
-                </div>
-            `;
-            document.getElementById('detail-modal').classList.add('active');
-        }
-        function closeDetail() { document.getElementById('detail-modal').classList.remove('active'); }
-        generateFlights();
-        setLanguage('tr');
-    </script>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${f.progress}%; background: ${f.brandColor};"></div></div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function setFilter(filter, el) {
+    currentFilter = filter;
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    renderFilteredFlights();
+}
+
+function switchTab(tab) {
+    if(tab === 'map') {
+        document.getElementById('map-full-wrapper').classList.add('active');
+        document.getElementById('btnMap').classList.add('active');
+        document.getElementById('btnList').classList.remove('active');
+        initMap();
+    } else {
+        document.getElementById('map-full-wrapper').classList.remove('active');
+        document.getElementById('btnList').classList.add('active');
+        document.getElementById('btnMap').classList.remove('active');
+    }
+}
+
+function initMap() {
+    if(!map) {
+        map = L.map('map').setView([48.5, 14.5], 5);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+    } else {
+        map.invalidateSize();
+    }
+    Object.values(markers).forEach(m => map.removeLayer(m));
+    markers = {};
+    
+    flightsData.forEach(f => {
+        let planeIcon = L.divIcon({
+            className: 'custom-plane-icon',
+            html: `<div style="transform: rotate(${f.heading || 0}deg); font-size: 22px; color: ${f.brandColor}; filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.5));">✈️</div>`,
+            iconSize: [30, 30],
+            iconAnchor: [15, 15]
+        });
+
+        let marker = L.marker([f.lat, f.lon], { icon: planeIcon }).addTo(map);
+        marker.bindPopup(`<b>${f.callsign}</b><br>${f.airlineName}<br>Hız: ${f.speed} km/h<br>İrtifa: ${f.alt} ft`);
+        markers[f.id] = marker;
+    });
+}
+
+function openSettings() { document.getElementById('settings-modal').classList.add('active'); }
+function closeSettings() { document.getElementById('settings-modal').classList.remove('active'); }
+function openLangModal() {
+    const listContainer = document.getElementById('langListContainer');
+    listContainer.innerHTML = '';
+    languages.forEach(l => {
+        let card = document.createElement('div');
+        card.className = 'lang-option-card';
+        card.innerHTML = `<span>${l.flag}</span> <span>${l.name}</span>`;
+        card.onclick = () => setLanguage(l.code);
+        listContainer.appendChild(card);
+    });
+    document.getElementById('lang-modal').classList.add('active');
+}
+function closeLangModal() { document.getElementById('lang-modal').classList.remove('active'); }
+function changeTheme(themeName) { document.body.className = 'theme-' + themeName; closeSettings(); }
+function saveNotificationPreference() {
+    let val = document.getElementById('notifFlightInput').value;
+    if(val) { alert(val + ' için bildirimler aktif edildi!'); document.getElementById('notifFlightInput').value = ''; }
+    else { alert('Lütfen uçuş kodu yazın.'); }
+}
+function openDetail(flight) {
+    document.getElementById('modalCallsignTitle').innerText = flight.callsign + ' Detayları';
+    document.getElementById('detailContent').innerHTML = `
+        <div class="cockpit-card">
+            <div class="cockpit-title">Havayolu Şirketi</div>
+            <div class="cockpit-value">${flight.airlineName}</div>
+        </div>
+        <div class="cockpit-card">
+            <div class="cockpit-title">Güzergah</div>
+            <div class="cockpit-value">${flight.route}</div>
+        </div>
+        <div class="cockpit-card">
+            <div class="cockpit-title">Anlık Hız / İrtifa</div>
+            <div class="cockpit-value">${flight.speed} km/h / ${flight.alt} ft</div>
+        </div>
+    `;
+    document.getElementById('detail-modal').classList.add('active');
+}
+function closeDetail() { document.getElementById('detail-modal').classList.remove('active'); }
+
+fetchLiveFlights();
+setInterval(fetchLiveFlights, 15000);
+setLanguage('tr');
+</script>
 </body>
 </html>
