@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="ui-title">✈️ Uçuş Radarı</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body { margin: 0; padding: 0; font-family: Arial, sans-serif; background: #0f172a; color: #fff; }
+        #map { height: 100vh; width: 100vw; position: absolute; top: 0; left: 0; z-index: 1; }
+        .ui-container { position: absolute; top: 20px; left: 20px; z-index: 10; background: rgba(15, 23, 42, 0.9); padding: 15px; border-radius: 10px; width: 300px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        input { width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 5px; border: none; background: #1e293b; color: #fff; box-sizing: border-box; }
+        .flight-item { padding: 8px; margin-bottom: 5px; background: #1e293b; border-radius: 5px; cursor: pointer; }
+        .flight-item:hover { background: #334155; }
+        .flight-callsign { font-weight: bold; color: #38bdf8; }
+        .flight-airline { font-size: 12px; color: #94a3b8; }
+        #count { margin-bottom: 10px; font-size: 14px; color: #38bdf8; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div class="ui-container">
+        <h3 id="ui-settings-title" style="margin-top:0;">Uçuş Radarı</h3>
+        <div id="count">Aktif Uçak Sayısı: 0</div>
+        <input type="text" id="searchInput" placeholder="Uçak ara..." onkeyup="filterFlights()">
+        <div id="flightList" style="max-height: 400px; overflow-y: auto;"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map = L.map('map').setView([47.0, 15.0], 6);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        let markers = {};
+        let allFlights = [];
+
+        function fetchFlights() {
+            fetch('/api/data')
+                .then(res => res.json())
+                .then(data => {
+                    allFlights = data;
+                    document.getElementById('count').innerText = `Aktif Uçak Sayısı: ${data.length}`;
+                    updateUI(data);
+                })
+                .catch(err => console.error("Veri çekme hatası:", err));
+        }
+
+        function updateUI(data) {
+            const listContainer = document.getElementById('flightList');
+            listContainer.innerHTML = '';
+
+            data.forEach(flight => {
+                if (markers[flight.id]) {
+                    markers[flight.id].setLatLng([flight.lat, flight.lon]);
+                } else {
+                    const marker = L.marker([flight.lat, flight.lon]).addTo(map);
+                    marker.bindPopup(`
+                        <div style="color: #000;">
+                            <b>Callsign:</b> ${flight.callsign}<br>
+                            <b>Airline:</b> ${flight.airline}<br>
+                            <b>Speed:</b> ${flight.speed} km/h<br>
+                            <b>Altitude:</b> ${flight.alt} ft
+                        </div>
+                    `);
+                    markers[flight.id] = marker;
+                }
+
+                const item = document.createElement('div');
+                item.className = 'flight-item';
+                item.innerHTML = `
+                    <div class="flight-callsign">${flight.callsign}</div>
+                    <div class="flight-airline">${flight.airline} • ${flight.speed} km/h</div>
+                `;
+                item.onclick = () => {
+                    map.setView([flight.lat, flight.lon], 9);
+                    markers[flight.id].openPopup();
+                };
+                listContainer.appendChild(item);
+            });
+        }
+
+        function filterFlights() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allFlights.filter(f => 
+                f.callsign.toLowerCase().includes(query) || 
+                f.airline.toLowerCase().includes(query)
+            );
+            updateUI(filtered);
+        }
+
+        fetchFlights();
+        setInterval(fetchFlights, 15000);
+    </script>
+</body>
+</html>
