@@ -144,9 +144,7 @@
         <div id="map"></div>
     </div>
 
-    <div id="flightCardsContainer" class="flight-cards">
-        <!-- Dinamik Uçuş Kartları -->
-    </div>
+    <div id="flightCardsContainer" class="flight-cards"></div>
 
     <!-- Ayarlar Modalı -->
     <div id="settings-modal" class="modal">
@@ -216,66 +214,12 @@
                 settings_title: 'App Settings', theme_title: 'Theme Color',
                 lang_settings_title: 'Language Option', btn_open_lang: 'Open Languages',
                 notif_title: 'Flight Notifications', btn_save_notif: 'Enable Notification', lang_modal_header: 'Select Language'
-            },
-            'de': {
-                live_subtitle: '● EUROPAWEIT LIVE', btn_settings: '⚙ Einstellungen', search_placeholder: 'Nach Flugcode suchen...',
-                stat_live_flight: 'Live-Flug', stat_avg_speed: 'Ø Geschwindigkeit', stat_region: 'Region', stat_region_name: 'Europa',
-                chip_all: 'Alle', tab_list: 'Live-Liste', tab_map: 'Live-Karte',
-                settings_title: 'App-Einstellungen', theme_title: 'Themenfarbe',
-                lang_settings_title: 'Sprachoption', btn_open_lang: 'Sprachen öffnen',
-                notif_title: 'Flugbenachrichtigungen', btn_save_notif: 'Benachrichtigung aktivieren', lang_modal_header: 'Sprache wählen'
-            },
-            'fr': {
-                live_subtitle: '● EN DIRECT EN EUROPE', btn_settings: '⚙ Paramètres', search_placeholder: 'Rechercher par code...',
-                stat_live_flight: 'Vol en direct', stat_avg_speed: 'Vitesse moyenne', stat_region: 'Région', stat_region_name: 'Europe',
-                chip_all: 'Tous', tab_list: 'Liste en direct', tab_map: 'Carte en direct',
-                settings_title: 'Paramètres', theme_title: 'Couleur du thème',
-                lang_settings_title: 'Option de langue', btn_open_lang: 'Ouvrir les langues',
-                notif_title: 'Notifications', btn_save_notif: 'Activer', lang_modal_header: 'Sélectionner la langue'
-            },
-            'it': {
-                live_subtitle: '● IN DIRETTA IN EUROPA', btn_settings: '⚙ Impostazioni', search_placeholder: 'Cerca per codice...',
-                stat_live_flight: 'Volo in diretta', stat_avg_speed: 'Velocità media', stat_region: 'Regione', stat_region_name: 'Europa',
-                chip_all: 'Tutti', tab_list: 'Lista in diretta', tab_map: 'Mappa in diretta',
-                settings_title: 'Impostazioni App', theme_title: 'Colore Tema',
-                lang_settings_title: 'Opzione Lingua', btn_open_lang: 'Apri Lingue',
-                notif_title: 'Notifiche Volo', btn_save_notif: 'Attiva Notifica', lang_modal_header: 'Seleziona Lingua'
-            },
-            'ru': {
-                live_subtitle: '● В ПРЯМОМ ЭФИРЕ В ЕВРОПЕ', btn_settings: '⚙ Настройки', search_placeholder: 'Поиск по коду...',
-                stat_live_flight: 'Рейс в прямом эфире', stat_avg_speed: 'Ср. скорость', stat_region: 'Регион', stat_region_name: 'Европа',
-                chip_all: 'Все', tab_list: 'Список рейсов', tab_map: 'Карта рейсов',
-                settings_title: 'Настройки', theme_title: 'Цветовая тема',
-                lang_settings_title: 'Язык', btn_open_lang: 'Открыть языки',
-                notif_title: 'Уведомления', btn_save_notif: 'Включить', lang_modal_header: 'Выберите язык'
-            },
-            'ar': {
-                live_subtitle: '● بث مباشر في أوروبا', btn_settings: '⚙ الإعدادات', search_placeholder: 'البحث برمز الرحلة...',
-                stat_live_flight: 'رحلة مباشرة', stat_avg_speed: 'متوسط السرعة', stat_region: 'المنطقة', stat_region_name: 'أوروبا',
-                chip_all: 'الكل', tab_list: 'قائمة الرحلات', tab_map: 'خريطة الرحلات',
-                settings_title: 'إعدادات التطبيق', theme_title: 'لون المظهر',
-                lang_settings_title: 'لغة التطبيق', btn_open_lang: 'فتح اللغات',
-                notif_title: 'إشعارات الرحلات', btn_save_notif: 'تفعيل الإشعار', lang_modal_header: 'اختر اللغة'
-            },
-            'hi': {
-                live_subtitle: '● यूरोप लाइव', btn_settings: '⚙ सेटिंग', search_placeholder: 'उड़ान कोड खोजें...',
-                stat_live_flight: 'लाइव उड़ान', stat_avg_speed: 'औसत गति', stat_region: 'क्षेत्र', stat_region_name: 'यूरोप',
-                chip_all: 'सभी', tab_list: 'लाइव सूची', tab_map: 'लाइव मानचित्र',
-                settings_title: 'ऐप सेटिंग', theme_title: 'थीम रंग',
-                lang_settings_title: 'भाषा विकल्प', btn_open_lang: 'भाषाएँ खोलें',
-                notif_title: 'उड़ान सूचना', btn_save_notif: 'सक्रिय करें', lang_modal_header: 'भाषा चुनें'
             }
         };
 
         const languages = [
             { code: 'tr', name: 'Türkçe', flag: '🇹🇷' },
-            { code: 'en', name: 'English', flag: '🇬🇧' },
-            { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-            { code: 'fr', name: 'Français', flag: '🇫🇷' },
-            { code: 'it', name: 'Italiano', flag: '🇮🇹' },
-            { code: 'ru', name: 'Русский', flag: '🇷🇺' },
-            { code: 'ar', name: 'العربية', flag: '🇸🇦' },
-            { code: 'hi', name: 'हिन्दी', flag: '🇮🇳' }
+            { code: 'en', name: 'English', flag: '🇬🇧' }
         ];
 
         let currentLang = 'tr';
@@ -296,7 +240,7 @@
                         }
                     }
                 })
-                .catch(err => console.error("Canlı veri çekilemedi:", err));
+                .catch(err => console.error("Veri alınamadı:", err));
         }
 
         function setLanguage(lang) {
@@ -332,94 +276,94 @@
             }
             if(filtered.length === 0) {
                 container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:30px;">Uçuş bulunamadı.</div>`;
-        return;
-    }
-    filtered.forEach(f => {
-        let card = document.createElement('div');
-        card.className = 'flight-card';
-        card.onclick = () => openDetail(f);
-        card.innerHTML = `
-            <div class="flight-top">
-                <div class="flight-left-info">
-                    <div class="airline-logo" style="background: ${f.brandColor}; color: #fff;">${f.callsign.substring(0,3)}</div>
-                    <div>
-                        <div class="callsign">${f.callsign}</div>
-                        <div class="route-badge">${f.airlineName}</div>
+                return;
+            }
+            filtered.forEach(f => {
+                let card = document.createElement('div');
+                card.className = 'flight-card';
+                card.onclick = () => openDetail(f);
+                card.innerHTML = `
+                    <div class="flight-top">
+                        <div class="flight-left-info">
+                            <div class="airline-logo" style="background: ${f.brandColor}; color: #fff;">${f.callsign.substring(0,3)}</div>
+                            <div>
+                                <div class="callsign">${f.callsign}</div>
+                                <div class="route-badge">${f.airlineName}</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="speed" style="color: ${f.brandColor};">${f.speed} <span style="font-size:0.6rem">km/h</span></div>
+                            <div class="alt-text">${f.alt} ft</div>
+                        </div>
                     </div>
-                </div>
-                <div>
-                    <div class="speed" style="color: ${f.brandColor};">${f.speed} <span style="font-size:0.6rem">km/h</span></div>
-                    <div class="alt-text">${f.alt} ft</div>
-                </div>
-            </div>
-            <div class="progress-container">
-                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${f.progress}%; background: ${f.brandColor};"></div></div>
-            </div>
-        `;
-        container.appendChild(card);
-    });
-}
+                    <div class="progress-container">
+                        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${f.progress}%; background: ${f.brandColor};"></div></div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
 
-function setFilter(filter, el) {
-    currentFilter = filter;
-    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-    el.classList.add('active');
-    renderFilteredFlights();
-}
+        function setFilter(filter, el) {
+            currentFilter = filter;
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            renderFilteredFlights();
+        }
 
-function switchTab(tab) {
-    if(tab === 'map') {
-        document.getElementById('map-full-wrapper').classList.add('active');
-        document.getElementById('btnMap').classList.add('active');
-        document.getElementById('btnList').classList.remove('active');
-        initMap();
-    } else {
-        document.getElementById('map-full-wrapper').classList.remove('active');
-        document.getElementById('btnList').classList.add('active');
-        document.getElementById('btnMap').classList.remove('active');
-    }
-}
+        function switchTab(tab) {
+            if(tab === 'map') {
+                document.getElementById('map-full-wrapper').classList.add('active');
+                document.getElementById('btnMap').classList.add('active');
+                document.getElementById('btnList').classList.remove('active');
+                initMap();
+            } else {
+                document.getElementById('map-full-wrapper').classList.remove('active');
+                document.getElementById('btnList').classList.add('active');
+                document.getElementById('btnMap').classList.remove('active');
+            }
+        }
 
-function initMap() {
-    if(!map) {
-        map = L.map('map').setView([48.5, 14.5], 5);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
-    } else {
-        map.invalidateSize();
-    }
-    Object.values(markers).forEach(m => map.removeLayer(m));
-    markers = {};
-    
-    flightsData.forEach(f => {
-        let planeIcon = L.divIcon({
-            className: 'custom-plane-icon',
-            html: `<div style="transform: rotate(${f.heading || 0}deg); font-size: 22px; color: ${f.brandColor}; filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.5));">✈️</div>`,
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
-        });
+        function initMap() {
+            if(!map) {
+                map = L.map('map').setView([48.5, 14.5], 5);
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+            } else {
+                map.invalidateSize();
+            }
+            Object.values(markers).forEach(m => map.removeLayer(m));
+            markers = {};
+            
+            flightsData.forEach(f => {
+                let planeIcon = L.divIcon({
+                    className: 'custom-plane-icon',
+                    html: `<div style="transform: rotate(${f.heading || 0}deg); font-size: 22px; color: ${f.brandColor}; filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.5));">✈️</div>`,
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15]
+                });
 
-        let marker = L.marker([f.lat, f.lon], { icon: planeIcon }).addTo(map);
-        marker.bindPopup(`<b>${f.callsign}</b><br>${f.airlineName}<br>Hız: ${f.speed} km/h<br>İrtifa: ${f.alt} ft`);
-        markers[f.id] = marker;
-    });
-}
+                let marker = L.marker([f.lat, f.lon], { icon: planeIcon }).addTo(map);
+                marker.bindPopup(`<b>${f.callsign}</b><br>${f.airlineName}<br>Hız: ${f.speed} km/h<br>İrtifa: ${f.alt} ft`);
+                markers[f.id] = marker;
+            });
+        }
 
-function openSettings() { document.getElementById('settings-modal').classList.add('active'); }
-function closeSettings() { document.getElementById('settings-modal').classList.remove('active'); }
-function openLangModal() {
-    const listContainer = document.getElementById('langListContainer');
-    listContainer.innerHTML = '';
-    languages.forEach(l => {
-        let card = document.createElement('div');
-        card.className = 'lang-option-card';
-        card.innerHTML = `<span>${l.flag}</span> <span>${l.name}</span>`;
-        card.onclick = () => setLanguage(l.code);
-        listContainer.appendChild(card);
-    });
-    document.getElementById('lang-modal').classList.add('active');
-}
-function closeLangModal() { document.getElementById('lang-modal').classList.remove('active'); }
-function changeTheme(themeName) { document.body.className = 'theme-' + themeName; closeSettings(); }
+        function openSettings() { document.getElementById('settings-modal').classList.add('active'); }
+        function closeSettings() { document.getElementById('settings-modal').classList.remove('active'); }
+        function openLangModal() {
+            const listContainer = document.getElementById('langListContainer');
+            listContainer.innerHTML = '';
+            languages.forEach(l => {
+                let card = document.createElement('div');
+                card.className = 'lang-option-card';
+                card.innerHTML = `<span>${l.flag}</span> <span>${l.name}</span>`;
+                card.onclick = () => setLanguage(l.code);
+                listContainer.appendChild(card);
+            });
+            document.getElementById('lang-modal').classList.add('active');
+        }
+        function closeLangModal() { document.getElementById('lang-modal').classList.remove('active'); }
+        function changeTheme(themeName) { document.body.className = 'theme-' + themeName; closeSettings(); }
 function saveNotificationPreference() {
     let val = document.getElementById('notifFlightInput').value;
     if(val) { alert(val + ' için bildirimler aktif edildi!'); document.getElementById('notifFlightInput').value = ''; }
