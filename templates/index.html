@@ -15,6 +15,15 @@
             --border-color: #1e293b;
         }
 
+        body.light-theme {
+            --bg-color: #f1f5f9;
+            --panel-bg: #ffffff;
+            --accent-color: #0284c7;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -28,13 +37,14 @@
             padding: 16px;
             max-width: 600px;
             margin: 0 auto;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             padding-bottom: 14px;
             border-bottom: 2px solid var(--accent-color);
             box-shadow: 0 4px 20px -5px rgba(56, 189, 248, 0.35);
@@ -44,6 +54,13 @@
             font-size: 1.5rem;
             color: var(--accent-color);
             text-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+        }
+
+        .sub-header-info {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            letter-spacing: 0.5px;
         }
 
         .settings-btn {
@@ -62,7 +79,7 @@
         }
 
         .search-container {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .search-input {
@@ -82,11 +99,38 @@
             box-shadow: 0 0 10px rgba(56, 189, 248, 0.15);
         }
 
+        .filter-scroll {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+            padding-bottom: 4px;
+        }
+
+        .filter-pill {
+            background: var(--panel-bg);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .filter-pill.active {
+            background: var(--accent-color);
+            color: #0b1120;
+            border-color: var(--accent-color);
+            font-weight: 600;
+        }
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .stat-card {
@@ -147,7 +191,7 @@
         .flight-card:hover {
             border-color: var(--accent-color);
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
         .flight-card-header {
@@ -166,6 +210,33 @@
         .flight-details-text {
             color: var(--text-muted);
             font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .progress-container {
+            margin-top: 8px;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 6px;
+            background: var(--border-color);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--accent-color);
+            border-radius: 3px;
         }
 
         #map-full-wrapper {
@@ -242,7 +313,7 @@
             gap: 10px;
         }
 
-        .lang-option-card {
+        .setting-option-card {
             background: var(--panel-bg);
             padding: 16px;
             border-radius: 10px;
@@ -251,9 +322,10 @@
             align-items: center;
             justify-content: space-between;
             cursor: pointer;
+            margin-bottom: 10px;
         }
 
-        .lang-option-card:hover {
+        .setting-option-card:hover {
             border-color: var(--accent-color);
         }
 
@@ -286,9 +358,18 @@
         <h1 data-i18n="app_title">AeroRadar Pro</h1>
         <button onclick="AppUI.openSettings()" class="settings-btn" data-i18n="btn_settings">Ayarlar</button>
     </header>
+    <div class="sub-header-info">● AVRUPA GENELİ CANLI RADAR</div>
 
     <div class="search-container">
         <input type="text" id="searchInput" class="search-input" data-i18n-placeholder="search_placeholder" placeholder="Uçuş kodu veya havayolu ara..." oninput="AppCore.filterFlights(this.value)">
+    </div>
+
+    <div class="filter-scroll">
+        <button class="filter-pill active" onclick="AppCore.filterByAirline('ALL', this)">Tümü</button>
+        <button class="filter-pill" onclick="AppCore.filterByAirline('Turkish Airlines', this)">THY</button>
+        <button class="filter-pill" onclick="AppCore.filterByAirline('Pegasus', this)">Pegasus</button>
+        <button class="filter-pill" onclick="AppCore.filterByAirline('Lufthansa', this)">Lufthansa</button>
+        <button class="filter-pill" onclick="AppCore.filterByAirline('British Airways', this)">British</button>
     </div>
 
     <div class="stats-grid">
@@ -323,15 +404,27 @@
             <h2 data-i18n="settings_title" style="color:var(--accent-color);">Uygulama Ayarları</h2>
             <button class="close-modal-btn" onclick="AppUI.closeSettings()">✕</button>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 12px;">
-            <button onclick="AppUI.openLangModal()" class="action-button" data-i18n="btn_open_lang">Dil Seçeneklerini Yönet</button>
-            <div class="lang-option-card">
-                <span data-i18n="setting_unit_label">Metrik Birim (km/h)</span>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+            <button onclick="AppUI.openLangModal()" class="action-button" style="margin-bottom: 10px;" data-i18n="btn_open_lang">Dil Seçeneklerini Yönet</button>
+            
+            <div class="setting-option-card">
+                <span>Metrik Birim (km/h)</span>
                 <input type="checkbox" id="unitToggle" checked onchange="AppCore.toggleUnit(this.checked)" style="transform: scale(1.3); cursor: pointer;">
             </div>
-            <div class="lang-option-card">
-                <span data-i18n="setting_notif_label">Canlı Veri Akışı</span>
+            
+            <div class="setting-option-card">
+                <span>Canlı Veri Akışı</span>
                 <input type="checkbox" id="notifToggle" checked onchange="AppCore.toggleStream(this.checked)" style="transform: scale(1.3); cursor: pointer;">
+            </div>
+
+            <div class="setting-option-card">
+                <span>🔔 Push Bildirimleri (Acil Durum / Squawk)</span>
+                <input type="checkbox" id="pushNotifToggle" checked onchange="AppCore.toggleNotifications(this.checked)" style="transform: scale(1.3); cursor: pointer;">
+            </div>
+
+            <div class="setting-option-card">
+                <span>💡 Aydınlık Tema (Işık Modu)</span>
+                <input type="checkbox" id="themeToggle" onchange="AppCore.toggleTheme(this.checked)" style="transform: scale(1.3); cursor: pointer;">
             </div>
         </div>
     </div>
@@ -362,106 +455,27 @@
                 settings_title: "Uygulama Ayarları", btn_open_lang: "Dil Seçeneklerini Yönet", lang_modal_title: "Dil Seçin",
                 label_airline: "Havayolu", label_route: "Güzergah", label_speed: "Hız", label_alt: "İrtifa", 
                 label_aircraft: "Uçak Modeli", label_squawk: "Squawk Kodu", label_heading: "Yön (Heading)", label_status: "Durum",
-                btn_jump: "Ana Sayfada Bu Koda Git", setting_unit_label: "Metrik Birim (km/h)", setting_notif_label: "Canlı Veri Akışı"
-            },
-            en: {
-                app_title: "AeroRadar Pro", btn_settings: "Settings", search_placeholder: "Search flight code or airline...",
-                stat_active: "Active Flights", stat_speed: "Avg Speed", stat_region: "Region",
-                tab_list: "Live List", tab_map: "Live Map", btn_back_list: "Back to List",
-                settings_title: "App Settings", btn_open_lang: "Manage Language Options", lang_modal_title: "Select Language",
-                label_airline: "Airline", label_route: "Route", label_speed: "Speed", label_alt: "Altitude",
-                label_aircraft: "Aircraft Model", label_squawk: "Squawk Code", label_heading: "Heading", label_status: "Status",
-                btn_jump: "Jump to Code on Main Page", setting_unit_label: "Metric Unit (km/h)", setting_notif_label: "Live Data Stream"
-            },
-            de: {
-                app_title: "AeroRadar Pro", btn_settings: "Einstellungen", search_placeholder: "Flugcode oder Airline suchen...",
-                stat_active: "Aktive Flügge", stat_speed: "Ø Geschwindigkeit", stat_region: "Region",
-                tab_list: "Live-Liste", tab_map: "Live-Karte", btn_back_list: "Zurück zur Liste",
-                settings_title: "App-Einstellungen", btn_open_lang: "Sprachoptionen verwalten", lang_modal_title: "Sprache wählen",
-                label_airline: "Fluggesellschaft", label_route: "Route", label_speed: "Geschwindigkeit", label_alt: "Flughöhe",
-                label_aircraft: "Flugzeugtyp", label_squawk: "Squawk-Code", label_heading: "Kurs", label_status: "Status",
-                btn_jump: "Zum Flugcode springen", setting_unit_label: "Metrische Einheit (km/h)", setting_notif_label: "Live-Datenstrom"
-            },
-            fr: {
-                app_title: "AeroRadar Pro", btn_settings: "Paramètres", search_placeholder: "Rechercher un vol ou une compagnie...",
-                stat_active: "Vols Actifs", stat_speed: "Vitesse Moy.", stat_region: "Région",
-                tab_list: "Liste en direct", tab_map: "Carte en direct", btn_back_list: "Retour à la liste",
-                settings_title: "Paramètres de l'application", btn_open_lang: "Gérer les langues", lang_modal_title: "Choisir la langue",
-                label_airline: "Compagnie", label_route: "Itinéraire", label_speed: "Vitesse", label_alt: "Altitude",
-                label_aircraft: "Appareil", label_squawk: "Code Squawk", label_heading: "Cap", label_status: "Statut",
-                btn_jump: "Aller à ce code", setting_unit_label: "Unité métrique (km/h)", setting_notif_label: "Flux de données en direct"
-            },
-            it: {
-                app_title: "AeroRadar Pro", btn_settings: "Impostazioni", search_placeholder: "Cerca codice volo o compagnia...",
-                stat_active: "Voli Attivi", stat_speed: "Velocità Media", stat_region: "Regione",
-                tab_list: "Lista dal vivo", tab_map: "Mappa dal vivo", btn_back_list: "Torna alla lista",
-                settings_title: "Impostazioni App", btn_open_lang: "Gestisci lingue", lang_modal_title: "Seleziona Lingua",
-                label_airline: "Compagnia", label_route: "Rotta", label_speed: "Velocità", label_alt: "Altitudine",
-                label_aircraft: "Modello Aereo", label_squawk: "Codice Squawk", label_heading: "Rotta (Heading)", label_status: "Stato",
-                btn_jump: "Vai al codice", setting_unit_label: "Unità metrica (km/h)", setting_notif_label: "Flusso dati in tempo reale"
-            },
-            ar: {
-                app_title: "AeroRadar Pro", btn_settings: "الإعدادات", search_placeholder: "ابحث عن رمز الرحلة أو لشرك...",
-                stat_active: "الرحلات النشطة", stat_speed: "متوسط السرعة", stat_region: "المنطقة",
-                tab_list: "القائمة المباشرة", tab_map: "الخريطة المباشرة", btn_back_list: "العودة للقائمة",
-                settings_title: "إعدادات التطبيق", btn_open_lang: "إدارة لغات التطبيق", lang_modal_title: "اختر اللغة",
-                label_airline: "خطوط الطيران", label_route: "خط السير", label_speed: "السرعة", label_alt: "الارتفاع",
-                label_aircraft: "طراز الطائرة", label_squawk: "رمز الاستجابة", label_heading: "الجهتان", label_status: "الحالة",
-                btn_jump: "الانتقال إلى الكود", setting_unit_label: "الوحدة المترية (كم/س)", setting_notif_label: "تدفق البيانات المباشر"
-            },
-            ru: {
-                app_title: "AeroRadar Pro", btn_settings: "Настройки", search_placeholder: "Поиск рейса или авиакомпании...",
-                stat_active: "Активные рейсы", stat_speed: "Ср. скорость", stat_region: "Регион",
-                tab_list: "Живой список", tab_map: "Живая карта", btn_back_list: "Назад к списку",
-                settings_title: "Настройки приложения", btn_open_lang: "Управление языками", lang_modal_title: "Выберите язык",
-                label_airline: "Авиакомпания", label_route: "Маршрут", label_speed: "Скорость", label_alt: "Высота",
-                label_aircraft: "Тип воздушного судна", label_squawk: "Код Squawk", label_heading: "Курс", label_status: "Статус",
-                btn_jump: "Перейти к коду", setting_unit_label: "Метрическая ед. (км/ч)", setting_notif_label: "Поток данных в реальном времени"
-            },
-            hi: {
-                app_title: "AeroRadar Pro", btn_settings: "सेटिंग्स", search_placeholder: "उड़ान कोड या एयरलाइन खोजें...",
-                stat_active: "सक्रिय उड़ानें", stat_speed: "औसत गति", stat_region: "क्षेत्र",
-                tab_list: "लाइव सूची", tab_map: "लाइव नक्शा", btn_back_list: "सूची पर वापस जाएं",
-                settings_title: "ऐप सेटिंग्स", btn_open_lang: "भाषा विकल्प प्रबंधित करें", lang_modal_title: "भाषा चुनें",
-                label_airline: "एयरलाइन", label_route: "मार्ग", label_speed: "गति", label_alt: "ऊंचाई",
-                label_aircraft: "विमान मॉडल", label_squawk: "स्क्वावक कोड", label_heading: "शीर्षक (Heading)", label_status: "स्थिति",
-                btn_jump: "इस कोड पर जाएं", setting_unit_label: "मीट्रिक इकाई (किमी/घंटा)", setting_notif_label: "लाइव डेटा स्ट्रीम"
-            },
-            zh: {
-                app_title: "AeroRadar Pro", btn_settings: "设置", search_placeholder: "搜索航班号或航空公司...",
-                stat_active: "活动航班", stat_speed: "平均速度", stat_region: "区域",
-                tab_list: "实时列表", tab_map: "实时地图", btn_back_list: "返回列表",
-                settings_title: "应用设置", btn_open_lang: "管理语言选项", lang_modal_title: "选择语言",
-                label_airline: "航空公司", label_route: "航线", label_speed: "速度", label_alt: "高度",
-                label_aircraft: "机型", label_squawk: "应答机代码", label_heading: "航向", label_status: "状态",
-                btn_jump: "转到此代码", setting_unit_label: "公制单位 (km/h)", setting_notif_label: "实时数据流"
+                btn_jump: "Ana Sayfada Bu Koda Git"
             }
         };
 
         const languagesData = [
             { code: 'tr', name: 'Türkçe', flag: '🇹🇷' },
             { code: 'en', name: 'English', flag: '🇬🇧' },
-            { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-            { code: 'fr', name: 'Français', flag: '🇫🇷' },
-            { code: 'it', name: 'Italiano', flag: '🇮🇹' },
-            { code: 'ar', name: 'العربية', flag: '🇸🇦' },
-            { code: 'ru', name: 'Русский', flag: '🇷🇺' },
-            { code: 'hi', name: 'हिन्दी', flag: '🇮🇳' },
-            { code: 'zh', name: '中文', flag: '🇨🇳' }
+            { code: 'de', name: 'Deutsch', flag: '🇩🇪' }
         ];
 
         const flightsData = [
-            { id: 1, callsign: 'THY1923', airline: 'Turkish Airlines', route: 'IST ➔ LHR', speed: 870, alt: 36000, lat: 41.0082, lon: 28.9784, aircraft: 'Boeing 777-300ER', squawk: '1452', heading: '310° NW', status: 'Havada (Cruising)' },
-            { id: 2, callsign: 'DLH400', airline: 'Lufthansa', route: 'FRA ➔ JFK', speed: 890, alt: 39000, lat: 50.1109, lon: 8.6821, aircraft: 'Airbus A350-900', squawk: '4211', heading: '280° W', status: 'Havada (Cruising)' },
-            { id: 3, callsign: 'BAW178', airline: 'British Airways', route: 'LHR ➔ DXB', speed: 910, alt: 40000, lat: 51.4700, lon: -0.4543, aircraft: 'Boeing 787-9 Dreamliner', squawk: '7302', heading: '120° SE', status: 'Havada (Cruising)' },
-            { id: 4, callsign: 'PGT321', airline: 'Pegasus', route: 'SAW ➔ BER', speed: 820, alt: 34000, lat: 40.9000, lon: 29.3000, aircraft: 'Airbus A321neo', squawk: '1156', heading: '305° NW', status: 'Havada (Cruising)' },
-            { id: 5, callsign: 'AFR116', airline: 'Air France', route: 'CDG ➔ MAD', speed: 860, alt: 37000, lat: 49.0097, lon: 2.5479, aircraft: 'Airbus A320', squawk: '5510', heading: '210° SW', status: 'Havada (Cruising)' },
-            { id: 6, callsign: 'KLM123', airline: 'KLM Royal Dutch', route: 'AMS ➔ VIE', speed: 810, alt: 34000, lat: 52.3105, lon: 4.7683, aircraft: 'Boeing 737-800', squawk: '3324', heading: '135° SE', status: 'Havada (Cruising)' }
+            { id: 1, callsign: 'THY1923', airline: 'Turkish Airlines', route: 'IST ➔ LHR', speed: 870, alt: 36000, lat: 41.0082, lon: 28.9784, aircraft: 'Boeing 777-300ER', squawk: '1452', heading: '310° NW', status: 'Havada (Cruising)', progress: 65, restTime: '28 Min.' },
+            { id: 2, callsign: 'DLH400', airline: 'Lufthansa', route: 'FRA ➔ JFK', speed: 890, alt: 39000, lat: 50.1109, lon: 8.6821, aircraft: 'Airbus A350-900', squawk: '4211', heading: '280° W', status: 'Havada (Cruising)', progress: 54, restTime: '43 Min.' },
+            { id: 3, callsign: 'BAW178', airline: 'British Airways', route: 'LHR ➔ DXB', speed: 910, alt: 40000, lat: 51.4700, lon: -0.4543, aircraft: 'Boeing 787-9 Dreamliner', squawk: '7302', heading: '120° SE', status: 'Havada (Cruising)', progress: 75, restTime: '29 Min.' },
+            { id: 4, callsign: 'PGT321', airline: 'Pegasus', route: 'SAW ➔ BER', speed: 820, alt: 34000, lat: 40.9000, lon: 29.3000, aircraft: 'Airbus A321neo', squawk: '1156', heading: '305° NW', status: 'Havada (Cruising)', progress: 40, restTime: '55 Min.' }
         ];
 
         let currentLang = 'tr';
         let isMetric = true;
         let mapInstance = null;
+        let selectedAirlineFilter = 'ALL';
 
         const AppCore = {
             init() {
@@ -474,7 +488,12 @@
                 if(!container) return;
                 container.innerHTML = '';
                 
-                data.forEach(f => {
+                let filtered = data;
+                if(selectedAirlineFilter !== 'ALL') {
+                    filtered = data.filter(f => f.airline.toLowerCase().includes(selectedAirlineFilter.toLowerCase()));
+                }
+
+                filtered.forEach(f => {
                     const speedVal = isMetric ? f.speed + " km/h" : Math.round(f.speed * 0.539957) + " kts";
                     const card = document.createElement('div');
                     card.className = 'flight-card';
@@ -482,14 +501,31 @@
                     card.innerHTML = `
                         <div class="flight-card-header">
                             <span class="flight-callsign">${f.callsign}</span>
-                            <span style="font-size: 0.9rem; color: var(--text-muted);">${speedVal}</span>
+                            <span style="font-size: 0.9rem; font-weight: bold;">${speedVal}</span>
                         </div>
-                        <div class="flight-details-text">${f.airline} | ${f.route}</div>
-                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Uçak: ${f.aircraft} | İrtifa: ${f.alt} ft</div>
+                        <div class="flight-details-text">✈️ ${f.route} &nbsp;|&nbsp; ${f.airline}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">Uçak: ${f.aircraft} | İrtifa: ${f.alt} ft</div>
+                        
+                        <div class="progress-container">
+                            <div class="progress-info">
+                                <span>İlerleme (%${f.progress})</span>
+                                <span>Kalan: ${f.restTime}</span>
+                            </div>
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" style="width: ${f.progress}%;"></div>
+                            </div>
+                        </div>
                     `;
                     card.onclick = () => AppUI.showDetail(f);
                     container.appendChild(card);
                 });
+            },
+
+            filterByAirline(airlineName, btnElement) {
+                selectedAirlineFilter = airlineName;
+                document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+                btnElement.classList.add('active');
+                this.renderFlights(flightsData);
             },
 
             filterFlights(query) {
@@ -523,6 +559,21 @@
 
             toggleStream(checked) {
                 console.log("Canlı akış durumu:", checked);
+            },
+
+            toggleNotifications(checked) {
+                console.log("Push bildirimleri:", checked);
+                if(checked && "Notification" in window) {
+                    Notification.requestPermission();
+                }
+            },
+
+            toggleTheme(checked) {
+                if(checked) {
+                    document.body.classList.add('light-theme');
+                } else {
+                    document.body.classList.remove('light-theme');
+                }
             },
 
             switchTab(tab) {
@@ -568,18 +619,6 @@
 
             setLanguage(langCode) {
                 currentLang = langCode;
-                const dict = i18nDict[langCode] || i18nDict['tr'];
-                
-                document.querySelectorAll('[data-i18n]').forEach(el => {
-                    const key = el.getAttribute('data-i18n');
-                    if (dict[key]) el.innerText = dict[key];
-                });
-
-                document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-                    const key = el.getAttribute('data-i18n-placeholder');
-                    if (dict[key]) el.placeholder = dict[key];
-                });
-
                 AppUI.closeLangModal();
             },
 
@@ -601,67 +640,46 @@
             }
         };
                 const AppUI = {
-            openSettings() {
-                const m = document.getElementById('settings-modal');
-                if(m) m.classList.add('active');
-            },
-            closeSettings() {
-                const m = document.getElementById('settings-modal');
-                if(m) m.classList.remove('active');
-            },
+            openSettings() { document.getElementById('settings-modal').classList.add('active'); },
+            closeSettings() { document.getElementById('settings-modal').classList.remove('active'); },
             openLangModal() {
                 const container = document.getElementById('langListContainer');
-                if(container) {
-                    container.innerHTML = '';
-                    languagesData.forEach(l => {
-                        const item = document.createElement('div');
-                        item.className = 'lang-option-card';
-                        item.innerHTML = `<span style="font-weight: bold;">${l.name}</span> <span style="font-size: 1.3rem;">${l.flag}</span>`;
-                        item.onclick = () => AppCore.setLanguage(l.code);
-                        container.appendChild(item);
-                    });
-                }
-                const m = document.getElementById('lang-modal');
-                if(m) m.classList.add('active');
+                container.innerHTML = '';
+                languagesData.forEach(l => {
+                    const item = document.createElement('div');
+                    item.className = 'setting-option-card';
+                    item.innerHTML = `<span style="font-weight: bold;">${l.name}</span> <span style="font-size: 1.3rem;">${l.flag}</span>`;
+                    item.onclick = () => AppCore.setLanguage(l.code);
+                    container.appendChild(item);
+                });
+                document.getElementById('lang-modal').classList.add('active');
             },
-            closeLangModal() {
-                const m = document.getElementById('lang-modal');
-                if(m) m.classList.remove('active');
-            },
+            closeLangModal() { document.getElementById('lang-modal').classList.remove('active'); },
             showDetail(f) {
-                const dict = i18nDict[currentLang] || i18nDict['tr'];
                 const titleEl = document.getElementById('detailTitle');
                 const contentEl = document.getElementById('detailContent');
                 const speedVal = isMetric ? f.speed + " km/h" : Math.round(f.speed * 0.539957) + " kts";
                 
-                if(titleEl) titleEl.innerText = f.callsign + " - Detaylar";
-                if(contentEl) {
-                    contentEl.innerHTML = `
-                        <div class="detail-box">
-                            <p><strong>${dict.label_airline || 'Havayolu'}:</strong> ${f.airline}</p>
-                            <p><strong>${dict.label_route || 'Güzergah'}:</strong> ${f.route}</p>
-                            <p><strong>${dict.label_aircraft || 'Uçak Modeli'}:</strong> ${f.aircraft}</p>
-                            <p><strong>${dict.label_speed || 'Hız'}:</strong> ${speedVal}</p>
-                            <p><strong>${dict.label_alt || 'İrtifa'}:</strong> ${f.alt} ft</p>
-                            <p><strong>${dict.label_heading || 'Yön'}:</strong> ${f.heading}</p>
-                            <p><strong>${dict.label_squawk || 'Squawk'}:</strong> ${f.squawk}</p>
-                            <p><strong>${dict.label_status || 'Durum'}:</strong> ${f.status}</p>
-                        </div>
-                        <button onclick="AppCore.jumpToCode('${f.callsign}')" class="action-button">${dict.btn_jump || 'Ana Sayfada Bu Koda Git'}</button>
-                    `;
-                }
-                const m = document.getElementById('detail-modal');
-                if(m) m.classList.add('active');
+                titleEl.innerText = f.callsign + " - Detaylar";
+                contentEl.innerHTML = `
+                    <div class="detail-box">
+                        <p><strong>Havayolu:</strong> ${f.airline}</p>
+                        <p><strong>Güzergah:</strong> ${f.route}</p>
+                        <p><strong>Uçak Modeli:</strong> ${f.aircraft}</p>
+                        <p><strong>Hız:</strong> ${speedVal}</p>
+                        <p><strong>İrtifa:</strong> ${f.alt} ft</p>
+                        <p><strong>Yön:</strong> ${f.heading}</p>
+                        <p><strong>Squawk:</strong> ${f.squawk}</p>
+                        <p><strong>Durum:</strong> ${f.status}</p>
+                    </div>
+                    <button onclick="AppCore.jumpToCode('${f.callsign}')" class="action-button">Ana Sayfada Bu Koda Git</button>
+                `;
+                document.getElementById('detail-modal').classList.add('active');
             },
-            closeDetail() {
-                const m = document.getElementById('detail-modal');
-                if(m) m.classList.remove('active');
-            }
+            closeDetail() { document.getElementById('detail-modal').classList.remove('active'); }
         };
 
-        document.addEventListener('DOMContentLoaded', () => {
-            AppCore.init();
-        });
+        document.addEventListener('DOMContentLoaded', () => { AppCore.init(); });
     </script>
 </body>
 </html>
