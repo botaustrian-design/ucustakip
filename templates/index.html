@@ -2,101 +2,476 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>AeroRadar Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroRadar Master Pro - Ultimate European Airspace Terminal</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        :root { --bg: #050a14; --panel: #0d1626; --accent: #38bdf8; --text: #f8fafc; }
-        body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; background: var(--bg); color: var(--text); }
-        #app-layout { display: flex; height: 100vh; }
-        #sidebar { width: 350px; background: var(--panel); border-right: 1px solid #1e293b; display: flex; flex-direction: column; }
-        #map { flex-grow: 1; height: 100%; }
-        .filter-bar { padding: 15px; border-bottom: 1px solid #1e293b; }
-        select { width: 100%; padding: 10px; background: #1e293b; color: white; border: none; border-radius: 4px; }
-        #flight-list { flex-grow: 1; overflow-y: auto; padding: 10px; }
-        .card { background: #162033; padding: 10px; margin-bottom: 8px; border-radius: 6px; border-left: 4px solid #ccc; font-size: 0.9rem; }
+        :root {
+            --bg-primary: #030712; --bg-secondary: #0b1329; --bg-tertiary: #111827;
+            --border-color: #1e293b; --text-main: #f8fafc; --text-muted: #94a3b8;
+            --accent: #38bdf8; --accent-hover: #0ea5e9; --success: #10b981;
+            --danger: #ef4444; --warning: #f59e0b; --panel-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+        [data-theme="light"] {
+            --bg-primary: #f1f5f9; --bg-secondary: #ffffff; --bg-tertiary: #e2e8f0;
+            --border-color: #cbd5e1; --text-main: #0f172a; --text-muted: #64748b;
+            --accent: #0284c7; --accent-hover: #0369a1; --panel-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; scrollbar-width: thin; scrollbar-color: var(--border-color) transparent; }
+        body, html { width: 100%; height: 100vh; background-color: var(--bg-primary); color: var(--text-main); overflow: hidden; transition: background-color 0.3s, color 0.3s; }
+        header { height: 65px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; z-index: 1100; position: relative; }
+        .logo-area { display: flex; align-items: center; gap: 12px; }
+        .logo-icon { font-size: 1.5rem; color: var(--accent); background: var(--bg-tertiary); padding: 10px; border-radius: 10px; border: 1px solid var(--border-color); }
+        .logo-text h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.5px; }
+        .logo-text span { font-size: 0.75rem; color: var(--text-muted); }
+        .header-actions { display: flex; align-items: center; gap: 15px; }
+        .badge-live { display: flex; align-items: center; gap: 6px; background: rgba(239, 68, 68, 0.15); color: var(--danger); padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge-live::before { content: ''; width: 8px; height: 8px; background: var(--danger); border-radius: 50%; animation: pulse-dot 1.5s infinite; }
+        @keyframes pulse-dot { 0% { transform: scale(0.95); opacity: 1; } 50% { transform: scale(1.4); opacity: 0.4; } 100% { transform: scale(0.95); opacity: 1; } }
+        .btn-icon { background: var(--bg-tertiary); color: var(--text-main); border: 1px solid var(--border-color); padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .btn-icon:hover { border-color: var(--accent); background: var(--bg-secondary); }
+        .app-container { display: flex; height: calc(100vh - 65px); position: relative; }
+        #sidebar { width: 420px; background: var(--bg-secondary); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; z-index: 1000; box-shadow: var(--panel-shadow); transition: transform 0.3s ease; }
+        .search-filter-section { padding: 20px; border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.05); }
+        .input-group { margin-bottom: 12px; }
+        .input-group label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-control { width: 100%; padding: 11px 14px; background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 8px; font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
+        .form-control:focus { border-color: var(--accent); }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px 20px; border-bottom: 1px solid var(--border-color); background: var(--bg-tertiary); }
+        .stat-card { background: var(--bg-primary); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); text-align: center; }
+        .stat-number { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+        .stat-title { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+        #flight-list { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .flight-item { background: var(--bg-primary); border: 1px solid var(--border-color); border-left: 5px solid var(--text-muted); border-radius: 8px; padding: 14px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; }
+        .flight-item:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .fi-left { display: flex; flex-direction: column; gap: 4px; }
+        .fi-callsign { font-weight: 700; font-size: 1rem; letter-spacing: 0.5px; }
+        .fi-airline { font-size: 0.75rem; color: var(--text-muted); }
+        .fi-right { text-align: right; display: flex; flex-direction: column; gap: 3px; }
+        .fi-metric { font-size: 0.85rem; font-weight: 600; }
+        .fi-submetric { font-size: 0.75rem; color: var(--text-muted); }
+        #map { flex: 1; height: 100%; background: var(--bg-primary); }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(3, 7, 18, 0.75); backdrop-filter: blur(5px); z-index: 2000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-container { width: 650px; max-width: 90%; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); display: flex; flex-direction: column; max-height: 85vh; transform: scale(0.95); transition: transform 0.3s; }
+        .modal-overlay.active .modal-container { transform: scale(1); }
+        .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; }
+        .modal-header h2 { font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 10px; color: var(--accent); }
+        .modal-close { background: transparent; border: none; color: var(--text-muted); font-size: 1.25rem; cursor: pointer; transition: color 0.2s; }
+        .modal-close:hover { color: var(--text-main); }
+        .modal-body { padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+        .setting-section-title { font-size: 0.85rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; }
+        .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
+        .setting-info h4 { font-size: 0.95rem; font-weight: 600; }
+        .setting-info p { font-size: 0.75rem; color: var(--text-muted); }
+        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--bg-tertiary); border: 1px solid var(--border-color); transition: .3s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: var(--text-muted); transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent); border-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(24px); background-color: #ffffff; }
+        .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px; background: rgba(0,0,0,0.02); }
+        .btn-primary { background: var(--accent); color: #ffffff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-secondary { background: var(--bg-tertiary); color: var(--text-main); border: 1px solid var(--border-color); padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-secondary:hover { border-color: var(--text-muted); }
+        @media (max-width: 900px) { .app-container { flex-direction: column-reverse; } #sidebar { width: 100%; height: 45vh; } #map { height: 55vh; } }
     </style>
 </head>
-<body>
-    <div id="app-layout">
-        <div id="sidebar">
-            <div class="filter-bar">
-                <h3>Havayolu Filtresi</h3>
-                <select id="airlineFilter" onchange="App.applyFilter(this.value)">
-                    <option value="ALL">Tüm Havayolları</option>
-                    <option value="Turkish Airlines">Turkish Airlines</option>
-                    <option value="Pegasus">Pegasus</option>
-                </select>
+<body data-theme="dark">
+    <header>
+        <div class="logo-area">
+            <div class="logo-icon"><i class="fa-solid fa-plane-departure"></i></div>
+            <div class="logo-text">
+                <h1>AERO-RADAR MASTER PRO</h1>
+                <span>Avrupa Canlı Hava Trafik Kontrolü</span>
             </div>
+        </div>
+        <div class="header-actions">
+            <div class="badge-live" id="statusBadge">CANLI BAĞLANTI</div>
+            <button class="btn-icon" onclick="AeroMaster.openSettings()"><i class="fa-solid fa-sliders"></i> Gelişmiş Ayarlar</button>
+            <button class="btn-icon" onclick="AeroMaster.exportData()" title="Verileri İndir"><i class="fa-solid fa-download"></i></button>
+        </div>
+    </header>
+
+    <div class="app-container">
+        <div id="sidebar">
+            <div class="search-filter-section">
+                <div class="input-group">
+                    <label>Havayolu Şirketi Filtresi</label>
+                    <select id="airlineFilter" class="form-control" onchange="AeroMaster.changeAirlineFilter(this.value)">
+                        <option value="ALL">🌐 Tüm Avrupa Havayolları (Hepsi)</option>
+                        <option value="THY">🇹🇷 Turkish Airlines (THY)</option>
+                        <option value="PGT">🇹🇷 Pegasus Airlines (PGT)</option>
+                        <option value="DLH">🇩🇪 Lufthansa (DLH)</option>
+                        <option value="BAW">🇬🇧 British Airways (BAW)</option>
+                        <option value="AFR">🇫🇷 Air France (AFR)</option>
+                        <option value="RYR">🇮🇪 Ryanair (RYR)</option>
+                        <option value="EZY">🇬🇧 EasyJet (EZY)</option>
+                        <option value="KLM">🇳🇱 KLM Royal Dutch (KLM)</option>
+                        <option value="SWR">🇨🇭 Swiss International (SWR)</option>
+                        <option value="AUA">🇦🇹 Austrian Airlines (AUA)</option>
+                    </select>
+                </div>
+                <div class="input-group" style="margin-bottom: 0;">
+                    <label>Uçuş Kodu veya Çağrı İşareti Ara</label>
+                    <input type="text" id="searchInput" class="form-control" placeholder="Örn: THY1923 veya PGT..." oninput="AeroMaster.changeSearchQuery(this.value)">
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="statTotal">0</div>
+                    <div class="stat-title">Toplam Uçak</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="statFiltered">0</div>
+                    <div class="stat-title">Filtrelenen</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="statFps">60</div>
+                    <div class="stat-title">Performans</div>
+                </div>
+            </div>
+
             <div id="flight-list"></div>
         </div>
-        <div id="map"></div>
+                <div id="map"></div>
+    </div>
+
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-gears"></i> Sistem ve Harita Ayarları</h2>
+                <button class="modal-close" onclick="AeroMaster.closeSettings()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-section-title">Görünüm & Tema</div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <h4>Aydınlık / Karanlık Mod</h4>
+                        <p>Arayüz renk şemasını değiştirin</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="themeSwitch" onchange="AeroMaster.toggleTheme(this.checked)" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <h4>Harita Tema Stili</h4>
+                        <p>Koyu uzay teması veya Carto açık harita stili</p>
+                    </div>
+                    <select id="mapStyleSelect" class="form-control" style="width: 180px;" onchange="AeroMaster.changeMapStyle(this.value)">
+                        <option value="dark">Carto Dark (Koyu)</option>
+                        <option value="voyager">Carto Voyager (Açık)</option>
+                        <option value="positron">Carto Positron (Minimal)</option>
+                    </select>
+                </div>
+
+                <div class="setting-section-title" style="margin-top: 10px;">Radar & Filtreleme</div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <h4>Uçuş İzlerini (Trail) Göster</h4>
+                        <p>Uçakların hareket geçmiş çizgilerini haritada çiz</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="trailSwitch" onchange="AeroMaster.toggleTrails(this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <h4>Sadece Yerdeki / Havadaki Ayrımı</h4>
+                        <p>Yalnızca seyir halindeki uçakları listele</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="airborneSwitch" onchange="AeroMaster.toggleAirborneOnly(this.checked)" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <h4>Otomatik Merkezleme (Follow Mode)</h4>
+                        <p>Seçilen uçağı harita merkezinde sabitle</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="followSwitch" onchange="AeroMaster.toggleFollow(this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-section-title" style="margin-top: 10px;">Veri & Akış Motoru</div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <h4>Canlı Veri Yenileme Sıklığı</h4>
+                        <p>OpenSky Network API sorgu periyodu</p>
+                    </div>
+                    <select id="refreshRateSelect" class="form-control" style="width: 180px;" onchange="AeroMaster.changeRefreshRate(this.value)">
+                        <option value="5000">5 Saniye (Çok Hızlı)</option>
+                        <option value="10000" selected>10 Saniye (Önerilen)</option>
+                        <option value="30000">30 Saniye (Tasarruflu)</option>
+                        <option value="60000">60 Saniye (Düşük Trafik)</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <h4>Birim Sistemi</h4>
+                        <p>Hız ve irtifa ölçü birimleri (Metrik / İngiliz)</p>
+                    </div>
+                    <select id="unitSystemSelect" class="form-control" style="width: 180px;" onchange="AeroMaster.changeUnits(this.value)">
+                        <option value="metric">Metrik (km/h, Metre)</option>
+                        <option value="aviation" selected>Havacılık (knots, ft)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="AeroMaster.resetSettings()">Varsayılanlara Dön</button>
+                <button class="btn-primary" onclick="AeroMaster.closeSettings()">Ayarları Kaydet & Kapat</button>
+            </div>
+        </div>
     </div>
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Marka Renkleri
-        const airlineColors = {
-            "Turkish Airlines": "#FF0000", // THY Kırmızı/Bordo tonu
-            "Pegasus": "#FFD700"          // Pegasus Sarı
+        const airlineConfig = {
+            'THY': { name: 'Turkish Airlines', color: '#e30a17' },
+            'PGT': { name: 'Pegasus Airlines', color: '#ffcc00' },
+            'DLH': { name: 'Lufthansa', color: '#05164d' },
+            'BAW': { name: 'British Airways', color: '#002855' },
+            'AFR': { name: 'Air France', color: '#002157' },
+            'RYR': { name: 'Ryanair', color: '#0033a0' },
+            'EZY': { name: 'EasyJet', color: '#ff6600' },
+            'KLM': { name: 'KLM Royal Dutch', color: '#00a1de' },
+            'SWR': { name: 'Swiss International', color: '#dc2626' },
+            'AUA': { name: 'Austrian Airlines', color: '#da291c' },
+            'DEFAULT': { name: 'Avrupa Diğer Filo', color: '#38bdf8' }
         };
 
-        const App = {
+        const AeroMaster = {
             map: null,
-            markers: [],
-            flights: [],
+            markersLayer: null,
+            allFlights: [],
+            currentFilter: 'ALL',
+            searchQuery: '',
+            refreshInterval: 10000,
+            timerId: null,
+            settings: {
+                darkMode: true,
+                mapStyle: 'dark',
+                showTrails: false,
+                airborneOnly: true,
+                followMode: false,
+                units: 'aviation'
+            },
+            selectedFlightId: null,
+            tileLayerInstance: null,
 
             init() {
-                // Haritayı başlat
-                this.map = L.map("map").setView([45.0, 15.0], 5);
-                L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png").addTo(this.map);
-                
-                // 1000 Gerçekçi Uçak Simülasyonu
-                for(let i = 0; i < 1000; i++) {
-                    const airline = (i % 2 === 0) ? "Turkish Airlines" : "Pegasus";
-                    this.flights.push({
-                        id: i,
-                        airline: airline,
-                        callsign: (airline === "Turkish Airlines" ? "THY" : "PGT") + i,
-                        lat: 35 + Math.random() * 20,
-                        lon: -5 + Math.random() * 30,
-                        color: airlineColors[airline]
+                this.map = L.map('map', { zoomControl: false }).setView([48.8566, 2.3522], 5);
+                L.control.zoom({ position: 'bottomright' }).addTo(this.map);
+
+                this.setMapTileLayer('dark');
+                this.markersLayer = L.layerGroup().addTo(this.map);
+
+                this.fetchData();
+                this.startTimer();
+            },
+
+            setMapTileLayer(styleKey) {
+                if (this.tileLayerInstance) {
+                    this.map.removeLayer(this.tileLayerInstance);
+                }
+                let url = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+                if (styleKey === 'voyager') {
+                    url = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+                } else if (styleKey === 'positron') {
+                    url = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+                }
+                this.tileLayerInstance = L.tileLayer(url, {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap contributors & CARTO'
+                }).addTo(this.map);
+            },
+
+            startTimer() {
+                if (this.timerId) clearInterval(this.timerId);
+                this.timerId = setInterval(() => this.fetchData(), this.refreshInterval);
+            },
+                        async fetchData() {
+                try {
+                    const url = 'https://opensky-network.org/api/states/all?lamin=35.0&lomin=-25.0&lamax=71.0&lomax=45.0';
+                    let response = await fetch(url);
+                    let data = await response.json();
+
+                    if (data && data.states) {
+                        document.getElementById('statusBadge').style.color = 'var(--success)';
+                        document.getElementById('statusBadge').style.borderColor = 'rgba(16, 185, 129, 0.3)';
+                        document.getElementById('statusBadge').style.background = 'rgba(16, 185, 129, 0.15)';
+                        document.getElementById('statusBadge').innerText = 'CANLI AKTİF VERİ';
+
+                        this.allFlights = data.states.map(flight => {
+                            let callsign = (flight[1] || 'BİLİNMİYOR').trim();
+                            let icaoPrefix = callsign.substring(0, 3).toUpperCase();
+                            let airlineKey = airlineConfig[icaoPrefix] ? icaoPrefix : 'DEFAULT';
+
+                            return {
+                                icao24: flight[0],
+                                callsign: callsign,
+                                originCountry: flight[2],
+                                lon: flight[5],
+                                lat: flight[6],
+                                altitude: flight[7] ? Math.round(flight[7] * 3.28084) : 0,
+                                speed: flight[9] ? Math.round(flight[9] * 1.94384) : 0,
+                                metricSpeed: flight[9] ? Math.round(flight[9] * 3.6) : 0,
+                                trueTrack: flight[10] || 0,
+                                airborne: !flight[8],
+                                airlineKey: airlineKey,
+                                airlineName: airlineConfig[airlineKey].name,
+                                color: airlineConfig[airlineKey].color
+                            };
+                        }).filter(f => f.lat && f.lon);
+
+                        this.updateUI();
+                    }
+                } catch (e) {
+                    document.getElementById('statusBadge').style.color = 'var(--warning)';
+                    document.getElementById('statusBadge').style.borderColor = 'rgba(245, 158, 11, 0.3)';
+                    document.getElementById('statusBadge').style.background = 'rgba(245, 158, 11, 0.15)';
+                    document.getElementById('statusBadge').innerText = 'YEDEK SİMÜLASYON';
+
+                    if (this.allFlights.length === 0) {
+                        this.generateFallbackData();
+                    } else {
+                        this.allFlights.forEach(f => {
+                            f.lat += (Math.random() - 0.5) * 0.05;
+                            f.lon += (Math.random() - 0.5) * 0.05;
+                        });
+                    }
+                    this.updateUI();
+                }
+            },
+
+            generateFallbackData() {
+                const keys = Object.keys(airlineConfig).filter(k => k !== 'DEFAULT');
+                for (let i = 0; i < 1200; i++) {
+                    let randomKey = keys[Math.floor(Math.random() * keys.length)];
+                    this.allFlights.push({
+                        icao24: 'sim' + i,
+                        callsign: randomKey + Math.floor(100 + Math.random() * 900),
+                        originCountry: 'Europe',
+                        lat: 36 + Math.random() * 30,
+                        lon: -10 + Math.random() * 50,
+                        altitude: Math.floor(12000 + Math.random() * 26000),
+                        speed: Math.floor(400 + Math.random() * 150),
+                        metricSpeed: Math.floor(750 + Math.random() * 250),
+                        trueTrack: Math.floor(Math.random() * 360),
+                        airborne: true,
+                        airlineKey: randomKey,
+                        airlineName: airlineConfig[randomKey].name,
+                        color: airlineConfig[randomKey].color
                     });
                 }
-                this.renderAll(this.flights);
-            },
-                    applyFilter(value) {
-                // Seçilen markaya göre filtrele (Seçilmeyenler haritadan ve listeden uçar)
-                const filtered = (value === "ALL") ? this.flights : this.flights.filter(f => f.airline === value);
-                this.renderAll(filtered);
             },
 
-            renderAll(data) {
-                // Sol Paneli Güncelle
-                const list = document.getElementById("flight-list");
-                list.innerHTML = "";
-                data.slice(0, 100).forEach(f => {
-                    const div = document.createElement("div");
-                    div.className = "card";
-                    div.style.borderLeftColor = f.color;
-                    div.innerHTML = "<b>" + f.callsign + "</b> - " + f.airline;
-                    list.appendChild(div);
+            changeAirlineFilter(val) { this.currentFilter = val; this.updateUI(); },
+            changeSearchQuery(val) { this.searchQuery = val.toLowerCase().trim(); this.updateUI(); },
+
+            updateUI() {
+                let filtered = this.allFlights.filter(f => {
+                    let matchAirline = (this.currentFilter === 'ALL' || f.airlineKey === this.currentFilter);
+                    let matchSearch = (f.callsign.toLowerCase().includes(this.searchQuery) || f.airlineName.toLowerCase().includes(this.searchQuery));
+                    let matchAirborne = this.settings.airborneOnly ? f.airborne : true;
+                    return matchAirline && matchSearch && matchAirborne;
                 });
 
-                // Haritadaki Eski İşaretçileri Temizle ve Yeni Filtrelenenleri Bas
-                this.markers.forEach(m => this.map.removeLayer(m));
-                this.markers = [];
-                data.forEach(f => {
-                    const marker = L.circleMarker([f.lat, f.lon], {
-                        radius: 4,
-                        color: f.color,
-                        fillOpacity: 1
-                    }).addTo(this.map).bindPopup(f.callsign);
-                    this.markers.push(marker);
+                document.getElementById('statTotal').innerText = this.allFlights.length.toLocaleString();
+                document.getElementById('statFiltered').innerText = filtered.length.toLocaleString();
+
+                const listEl = document.getElementById('flight-list');
+                listEl.innerHTML = '';
+
+                filtered.slice(0, 100).forEach(f => {
+                    const item = document.createElement('div');
+                    item.className = 'flight-item';
+                    item.style.borderLeftColor = f.color;
+                    item.onclick = () => this.focusFlight(f);
+
+                    let speedDisplay = this.settings.units === 'aviation' ? `${f.speed} kts` : `${f.metricSpeed} km/h`;
+                    let altDisplay = `${f.altitude.toLocaleString()} ft`;
+
+                    item.innerHTML = `
+                        <div class="fi-left">
+                            <span class="fi-callsign" style="color: ${f.color}">${f.callsign}</span>
+                            <span class="fi-airline">${f.airlineName}</span>
+                        </div>
+                        <div class="fi-right">
+                            <span class="fi-metric">${speedDisplay}</span>
+                            <span class="fi-submetric">${altDisplay}</span>
+                        </div>
+                    `;
+                    listEl.appendChild(item);
                 });
+
+                this.markersLayer.clearLayers();
+                filtered.forEach(f => {
+                    let marker = L.circleMarker([f.lat, f.lon], {
+                        radius: 4.5, color: f.color, fillColor: f.color, fillOpacity: 0.9, weight: 1.5
+                    });
+                    let speedDisplay = this.settings.units === 'aviation' ? `${f.speed} knots` : `${f.metricSpeed} km/h`;
+                    marker.bindPopup(`
+                        <div style="font-family:'Inter',sans-serif; padding:4px;">
+                            <b style="font-size:1rem; color:${f.color};">${f.callsign}</b><br>
+                            <span style="color:#64748b; font-size:0.8rem;">${f.airlineName}</span><hr style="border:0; border-top:1px solid #cbd5e1; margin:6px 0;">
+                            <b>İrtifa:</b> ${f.altitude.toLocaleString()} ft<br>
+                            <b>Hız:</b> ${speedDisplay}<br>
+                            <b>Durum:</b> ${f.airborne ? '✈️ Havada' : '🛬 Yerde'}
+                        </div>
+                    `);
+                    this.markersLayer.addLayer(marker);
+                });
+            },
+
+            focusFlight(f) { this.map.setView([f.lat, f.lon], 8, { animate: true }); },
+            openSettings() { document.getElementById('settingsModal').classList.add('active'); },
+            closeSettings() { document.getElementById('settingsModal').classList.remove('active'); },
+            toggleTheme(isDark) { this.settings.darkMode = isDark; document.body.setAttribute('data-theme', isDark ? 'dark' : 'light'); },
+            changeMapStyle(styleKey) { this.settings.mapStyle = styleKey; this.setMapTileLayer(styleKey); },
+            toggleTrails(enabled) { this.settings.showTrails = enabled; },
+            toggleAirborneOnly(enabled) { this.settings.airborneOnly = enabled; this.updateUI(); },
+            toggleFollow(enabled) { this.settings.followMode = enabled; },
+            changeRefreshRate(ms) { this.refreshInterval = parseInt(ms); this.startTimer(); },
+            changeUnits(system) { this.settings.units = system; this.updateUI(); },
+            resetSettings() {
+                document.getElementById('themeSwitch').checked = true;
+                document.getElementById('mapStyleSelect').value = 'dark';
+                document.getElementById('trailSwitch').checked = false;
+                document.getElementById('airborneSwitch').checked = true;
+                document.getElementById('followSwitch').checked = false;
+                document.getElementById('refreshRateSelect').value = '10000';
+                document.getElementById('unitSystemSelect').value = 'aviation';
+                this.toggleTheme(true);
+                this.changeMapStyle('dark');
+                this.toggleTrails(false);
+                this.toggleAirborneOnly(true);
+                this.toggleFollow(false);
+                this.changeRefreshRate(10000);
+                this.changeUnits('aviation');
+            },
+            exportData() {
+                let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.allFlights, null, 2));
+                let downloadAnchor = document.createElement('a');
+                downloadAnchor.setAttribute("href", dataStr);
+                downloadAnchor.setAttribute("download", "aeroradar_europe_export.json");
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                downloadAnchor.remove();
             }
         };
 
-        // Uygulamayı Başlat
-        App.init();
+        window.addEventListener('DOMContentLoaded', () => { AeroMaster.init(); });
     </script>
 </body>
 </html>
