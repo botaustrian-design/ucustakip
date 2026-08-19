@@ -3,176 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AeroRadar Pro - Enterprise Full Edition</title>
+    <title>AeroRadar Pro - Clean Edition</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
-            --bg-color: #080c14;
-            --panel-bg: #111827;
-            --accent-neon: #00f2ff;
-            --neon-glow: 0 0 10px rgba(0, 242, 255, 0.6), 0 0 20px rgba(0, 242, 255, 0.3);
-            --text-main: #f3f4f6;
-            --border-color: #1f2937;
+            --bg-color: #0b1120;
+            --panel-bg: #151c2f;
+            --accent-color: #38bdf8;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #1e293b;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
-            padding: 20px;
-            overflow-x: hidden;
+            padding: 16px;
+            max-width: 600px;
+            margin: 0 auto;
         }
 
-        /* Neon Sınıfları */
-        .neon-text {
-            color: var(--accent-neon);
-            text-shadow: 0 0 8px var(--accent-neon), 0 0 15px var(--accent-neon);
-            font-weight: 800;
-        }
-
-        .neon-box {
-            border: 2px solid var(--accent-neon);
-            box-shadow: var(--neon-glow);
-            border-radius: 12px;
-        }
-
-        /* Başlık ve Üst Alan */
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
             border-bottom: 1px solid var(--border-color);
         }
 
         header h1 {
-            font-size: 1.8rem;
-            letter-spacing: 1px;
+            font-size: 1.5rem;
+            color: var(--accent-color);
         }
 
         .settings-btn {
-            background: transparent;
+            background: var(--panel-bg);
             color: var(--text-main);
-            padding: 10px 18px;
+            border: 1px solid var(--border-color);
+            padding: 8px 14px;
+            border-radius: 8px;
             cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
+            font-size: 0.9rem;
         }
 
-        .settings-btn:hover {
-            background: rgba(0, 242, 255, 0.1);
-        }
-
-        /* Arama Kutusu */
         .search-container {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .search-input {
             width: 100%;
-            padding: 16px 20px;
+            padding: 14px 16px;
             background: var(--panel-bg);
             color: var(--text-main);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 10px;
             font-size: 1rem;
             outline: none;
-            transition: border-color 0.3s;
         }
 
         .search-input:focus {
-            border-color: var(--accent-neon);
-            box-shadow: 0 0 8px rgba(0, 242, 255, 0.4);
+            border-color: var(--accent-color);
         }
 
-        /* İstatistik Kartları Alanı */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-bottom: 25px;
+            gap: 10px;
+            margin-bottom: 20px;
         }
 
         .stat-card {
             background: var(--panel-bg);
-            padding: 15px;
-            border-radius: 12px;
+            padding: 12px;
+            border-radius: 10px;
             text-align: center;
             border: 1px solid var(--border-color);
         }
 
-        .stat-card .value {
-            font-size: 1.4rem;
-            margin-top: 5px;
+        .stat-card .label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
         }
 
-        /* Sekme Butonları */
+        .stat-card .value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
         .tab-container {
             display: flex;
-            gap: 15px;
-            margin-bottom: 25px;
+            gap: 10px;
+            margin-bottom: 20px;
         }
 
         .tab-btn {
             flex: 1;
-            padding: 14px;
+            padding: 12px;
             background: var(--panel-bg);
-            color: var(--text-main);
+            color: var(--text-muted);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 1rem;
-            font-weight: bold;
-            transition: all 0.3s;
+            font-size: 0.95rem;
+            font-weight: 600;
         }
 
         .tab-btn.active {
-            border-color: var(--accent-neon);
-            box-shadow: var(--neon-glow);
-            color: var(--accent-neon);
+            background: var(--accent-color);
+            color: #0b1120;
+            border-color: var(--accent-color);
         }
 
-        /* Uçuş Kartları Listesi */
         .flight-card {
             background: var(--panel-bg);
-            padding: 20px;
-            border-radius: 14px;
-            margin-bottom: 15px;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
             border: 1px solid var(--border-color);
             cursor: pointer;
-            transition: transform 0.2s, border-color 0.2s;
+            transition: border-color 0.2s;
         }
 
         .flight-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--accent-neon);
+            border-color: var(--accent-color);
         }
 
         .flight-card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .flight-callsign {
-            font-size: 1.3rem;
-            letter-spacing: 0.5px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--accent-color);
         }
 
         .flight-details-text {
-            color: #9ca3af;
-            font-size: 0.95rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
         }
 
-        /* Tam Ekran Harita */
         #map-full-wrapper {
             display: none;
             position: fixed;
@@ -195,20 +178,18 @@
 
         .map-back-btn {
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: 15px;
+            right: 15px;
             z-index: 1001;
-            padding: 12px 24px;
+            padding: 10px 18px;
             background: var(--panel-bg);
-            color: var(--accent-neon);
-            border: 2px solid var(--accent-neon);
-            border-radius: 10px;
+            color: var(--accent-color);
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
-            box-shadow: var(--neon-glow);
         }
 
-        /* Tam Ekran Modallar */
         .modal {
             display: none;
             position: fixed;
@@ -218,7 +199,7 @@
             height: 100vh;
             background: var(--bg-color);
             z-index: 9999;
-            padding: 30px;
+            padding: 20px;
             overflow-y: auto;
         }
 
@@ -230,138 +211,119 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
             border-bottom: 1px solid var(--border-color);
         }
 
         .close-modal-btn {
             background: none;
             border: none;
-            color: var(--accent-neon);
-            font-size: 2rem;
+            color: var(--text-main);
+            font-size: 1.8rem;
             cursor: pointer;
-            line-height: 1;
         }
 
         .lang-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 15px;
+            grid-template-columns: 1fr;
+            gap: 10px;
         }
 
         .lang-option-card {
             background: var(--panel-bg);
-            padding: 20px;
-            border-radius: 12px;
+            padding: 16px;
+            border-radius: 10px;
             border: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             justify-content: space-between;
             cursor: pointer;
-            transition: 0.2s;
         }
 
         .lang-option-card:hover {
-            border-color: var(--accent-neon);
-            box-shadow: var(--neon-glow);
+            border-color: var(--accent-color);
         }
 
         .detail-box {
             background: var(--panel-bg);
-            padding: 25px;
-            border-radius: 14px;
+            padding: 20px;
+            border-radius: 12px;
             border: 1px solid var(--border-color);
-            margin-bottom: 25px;
-            line-height: 1.8;
-            font-size: 1.1rem;
+            margin-bottom: 20px;
+            line-height: 1.6;
         }
 
         .action-button {
             width: 100%;
-            padding: 16px;
-            background: transparent;
-            color: var(--accent-neon);
-            border: 2px solid var(--accent-neon);
-            border-radius: 12px;
-            font-size: 1.1rem;
+            padding: 14px;
+            background: var(--accent-color);
+            color: #0b1120;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: var(--neon-glow);
-            transition: background 0.3s;
-        }
-
-        .action-button:hover {
-            background: rgba(0, 242, 255, 0.15);
         }
     </style>
 </head>
 <body>
 
-    <!-- Ana Ekran Üst Bölüm -->
     <header>
-        <h1 class="neon-text" data-i18n="app_title">AeroRadar Pro</h1>
-        <button onclick="AppUI.openSettings()" class="settings-btn neon-box" data-i18n="btn_settings">⚙ Ayarlar</button>
+        <h1 data-i18n="app_title">AeroRadar Pro</h1>
+        <button onclick="AppUI.openSettings()" class="settings-btn" data-i18n="btn_settings">Ayarlar</button>
     </header>
 
-    <!-- Arama Kutusu -->
     <div class="search-container">
-        <input type="text" id="searchInput" class="search-input" data-i18n-placeholder="search_placeholder" placeholder="Uçuş kodu veya havayolu ara (örn. THY, DLH)..." oninput="AppCore.filterFlights(this.value)">
+        <input type="text" id="searchInput" class="search-input" data-i18n-placeholder="search_placeholder" placeholder="Uçuş kodu veya havayolu ara..." oninput="AppCore.filterFlights(this.value)">
     </div>
 
-    <!-- İstatistikler -->
     <div class="stats-grid">
         <div class="stat-card">
-            <div style="font-size: 0.85rem; color: #9ca3af;" data-i18n="stat_active">Aktif Uçuş</div>
-            <div id="statTotal" class="value neon-text">0</div>
+            <div class="label" data-i18n="stat_active">Aktif Uçuş</div>
+            <div id="statTotal" class="value">0</div>
         </div>
         <div class="stat-card">
-            <div style="font-size: 0.85rem; color: #9ca3af;" data-i18n="stat_speed">Ortalama Hız</div>
-            <div id="statSpeed" class="value neon-text">0 km/h</div>
+            <div class="label" data-i18n="stat_speed">Ortalama Hız</div>
+            <div id="statSpeed" class="value">0 km/h</div>
         </div>
         <div class="stat-card">
-            <div style="font-size: 0.85rem; color: #9ca3af;" data-i18n="stat_region">Bölge</div>
-            <div class="value neon-text" style="font-size: 1.2rem;">Avrupa</div>
+            <div class="label" data-i18n="stat_region">Bölge</div>
+            <div class="value" style="font-size: 1rem;">Avrupa</div>
         </div>
     </div>
 
-    <!-- Sekmeler -->
     <div class="tab-container">
         <button id="tabListBtn" onclick="AppCore.switchTab('list')" class="tab-btn active" data-i18n="tab_list">Canlı Liste</button>
         <button id="tabMapBtn" onclick="AppCore.switchTab('map')" class="tab-btn" data-i18n="tab_map">Canlı Harita</button>
     </div>
 
-    <!-- Tam Ekran Harita Konteyneri -->
     <div id="map-full-wrapper">
         <div id="map"></div>
         <button onclick="AppCore.switchTab('list')" class="map-back-btn" data-i18n="btn_back_list">Listeye Dön</button>
     </div>
 
-    <!-- Uçuş Kartları Listesi -->
     <div id="flightCardsContainer"></div>
 
-    <!-- Ayarlar Modalı (Tam Ekran) -->
     <div id="settings-modal" class="modal">
         <div class="modal-header">
-            <h2 class="neon-text" data-i18n="settings_title">Uygulama Ayarları</h2>
+            <h2 data-i18n="settings_title" style="color:var(--accent-color);">Uygulama Ayarları</h2>
             <button class="close-modal-btn" onclick="AppUI.closeSettings()">✕</button>
         </div>
         <button onclick="AppUI.openLangModal()" class="action-button" data-i18n="btn_open_lang">Dil Seçeneklerini Yönet</button>
     </div>
 
-    <!-- Dil Seçim Modalı (Tam Ekran) -->
     <div id="lang-modal" class="modal">
         <div class="modal-header">
-            <h2 class="neon-text" data-i18n="lang_modal_title">Dil Seçin</h2>
+            <h2 data-i18n="lang_modal_title" style="color:var(--accent-color);">Dil Seçin</h2>
             <button class="close-modal-btn" onclick="AppUI.closeLangModal()">✕</button>
         </div>
         <div id="langListContainer" class="lang-grid"></div>
     </div>
 
-    <!-- Uçuş Detay Modalı (Tam Ekran) -->
     <div id="detail-modal" class="modal">
         <div class="modal-header">
-            <h2 class="neon-text" id="detailTitle">Detaylar</h2>
+            <h2 id="detailTitle" style="color:var(--accent-color);">Detaylar</h2>
             <button class="close-modal-btn" onclick="AppUI.closeDetail()">✕</button>
         </div>
         <div id="detailContent"></div>
@@ -369,49 +331,72 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Dil Sözlükleri Altyapısı
-        const i18nDict = {
+                const i18nDict = {
             tr: {
-                app_title: "AeroRadar Pro",
-                btn_settings: "⚙ Ayarlar",
-                search_placeholder: "Uçuş kodu veya havayolu ara (örn. THY, DLH)...",
-                stat_active: "Aktif Uçuş",
-                stat_speed: "Ortalama Hız",
-                stat_region: "Bölge",
-                tab_list: "Canlı Liste",
-                tab_map: "Canlı Harita",
-                btn_back_list: "Listeye Dön",
-                settings_title: "Uygulama Ayarları",
-                btn_open_lang: "Dil Seçeneklerini Yönet",
-                lang_modal_title: "Dil Seçin",
-                label_airline: "Havayolu",
-                label_route: "Güzergah",
-                label_speed: "Hız",
-                label_alt: "İrtifa",
-                btn_jump: "Ana Sayfada Bu Koda Git"
+                app_title: "AeroRadar Pro", btn_settings: "Ayarlar", search_placeholder: "Uçuş kodu veya havayolu ara...",
+                stat_active: "Aktif Uçuş", stat_speed: "Ortalama Hız", stat_region: "Bölge",
+                tab_list: "Canlı Liste", tab_map: "Canlı Harita", btn_back_list: "Listeye Dön",
+                settings_title: "Uygulama Ayarları", btn_open_lang: "Dil Seçeneklerini Yönet", lang_modal_title: "Dil Seçin",
+                label_airline: "Havayolu", label_route: "Güzergah", label_speed: "Hız", label_alt: "İrtifa", btn_jump: "Ana Sayfada Bu Koda Git"
             },
             en: {
-                app_title: "AeroRadar Pro",
-                btn_settings: "⚙ Settings",
-                search_placeholder: "Search flight code or airline...",
-                stat_active: "Active Flights",
-                stat_speed: "Avg Speed",
-                stat_region: "Region",
-                tab_list: "Live List",
-                tab_map: "Live Map",
-                btn_back_list: "Back to List",
-                settings_title: "App Settings",
-                btn_open_lang: "Manage Language Options",
-                lang_modal_title: "Select Language",
-                label_airline: "Airline",
-                label_route: "Route",
-                label_speed: "Speed",
-                label_alt: "Altitude",
-                btn_jump: "Jump to Code on Main Page"
+                app_title: "AeroRadar Pro", btn_settings: "Settings", search_placeholder: "Search flight code or airline...",
+                stat_active: "Active Flights", stat_speed: "Avg Speed", stat_region: "Region",
+                tab_list: "Live List", tab_map: "Live Map", btn_back_list: "Back to List",
+                settings_title: "App Settings", btn_open_lang: "Manage Language Options", lang_modal_title: "Select Language",
+                label_airline: "Airline", label_route: "Route", label_speed: "Speed", label_alt: "Altitude", btn_jump: "Jump to Code on Main Page"
+            },
+            de: {
+                app_title: "AeroRadar Pro", btn_settings: "Einstellungen", search_placeholder: "Flugcode oder Airline suchen...",
+                stat_active: "Aktive Flügge", stat_speed: "Ø Geschwindigkeit", stat_region: "Region",
+                tab_list: "Live-Liste", tab_map: "Live-Karte", btn_back_list: "Zurück zur Liste",
+                settings_title: "App-Einstellungen", btn_open_lang: "Sprachoptionen verwalten", lang_modal_title: "Sprache wählen",
+                label_airline: "Fluggesellschaft", label_route: "Route", label_speed: "Geschwindigkeit", label_alt: "Flughöhe", btn_jump: "Zum Flugcode springen"
+            },
+            fr: {
+                app_title: "AeroRadar Pro", btn_settings: "Paramètres", search_placeholder: "Rechercher un vol ou une compagnie...",
+                stat_active: "Vols Actifs", stat_speed: "Vitesse Moy.", stat_region: "Région",
+                tab_list: "Liste en direct", tab_map: "Carte en direct", btn_back_list: "Retour à la liste",
+                settings_title: "Paramètres de l'application", btn_open_lang: "Gérer les langues", lang_modal_title: "Choisir la langue",
+                label_airline: "Compagnie", label_route: "Itinéraire", label_speed: "Vitesse", label_alt: "Altitude", btn_jump: "Aller à ce code"
+            },
+            it: {
+                app_title: "AeroRadar Pro", btn_settings: "Impostazioni", search_placeholder: "Cerca codice volo o compagnia...",
+                stat_active: "Voli Attivi", stat_speed: "Velocità Media", stat_region: "Regione",
+                tab_list: "Lista dal vivo", tab_map: "Mappa dal vivo", btn_back_list: "Torna alla lista",
+                settings_title: "Impostazioni App", btn_open_lang: "Gestisci lingue", lang_modal_title: "Seleziona Lingua",
+                label_airline: "Compagnia", label_route: "Rotta", label_speed: "Velocità", label_alt: "Altitudine", btn_jump: "Vai al codice"
+            },
+            ar: {
+                app_title: "AeroRadar Pro", btn_settings: "الإعدادات", search_placeholder: "ابحث عن رمز الرحلة أو لشرك...",
+                stat_active: "الرحلات النشطة", stat_speed: "متوسط السرعة", stat_region: "المنطقة",
+                tab_list: "القائمة المباشرة", tab_map: "الخريطة المباشرة", btn_back_list: "العودة للقائمة",
+                settings_title: "إعدادات التطبيق", btn_open_lang: "إدارة لغات التطبيق", lang_modal_title: "اختر اللغة",
+                label_airline: "خطوط الطيران", label_route: "خط السير", label_speed: "السرعة", label_alt: "الارتفاع", btn_jump: "الانتقال إلى الكود"
+            },
+            ru: {
+                app_title: "AeroRadar Pro", btn_settings: "Настройки", search_placeholder: "Поиск рейса или авиакомпании...",
+                stat_active: "Активные рейсы", stat_speed: "Ср. скорость", stat_region: "Регион",
+                tab_list: "Живой список", tab_map: "Живая карта", btn_back_list: "Назад к списку",
+                settings_title: "Настройки приложения", btn_open_lang: "Управление языками", lang_modal_title: "Выберите язык",
+                label_airline: "Авиакомпания", label_route: "Маршрут", label_speed: "Скорость", label_alt: "Высота", btn_jump: "Перейти к коду"
+            },
+            hi: {
+                app_title: "AeroRadar Pro", btn_settings: "सेटिंग्स", search_placeholder: "उड़ान कोड या एयरलाइन खोजें...",
+                stat_active: "सक्रिय उड़ानें", stat_speed: "औसत गति", stat_region: "क्षेत्र",
+                tab_list: "लाइव सूची", tab_map: "लाइव नक्शा", btn_back_list: "सूची पर वापस जाएं",
+                settings_title: "ऐप सेटिंग्स", btn_open_lang: "भाषा विकल्प प्रबंधित करें", lang_modal_title: "भाषा चुनें",
+                label_airline: "एयरलाइन", label_route: "मार्ग", label_speed: "गति", label_alt: "ऊंचाई", btn_jump: "इस कोड पर जाएं"
+            },
+            zh: {
+                app_title: "AeroRadar Pro", btn_settings: "设置", search_placeholder: "搜索航班号或航空公司...",
+                stat_active: "活动航班", stat_speed: "平均速度", stat_region: "区域",
+                tab_list: "实时列表", tab_map: "实时地图", btn_back_list: "返回列表",
+                settings_title: "应用设置", btn_open_lang: "管理语言选项", lang_modal_title: "选择语言",
+                label_airline: "航空公司", label_route: "航线", label_speed: "速度", label_alt: "高度", btn_jump: "转到此代码"
             }
         };
 
-        // Dil ve Uçuş Verileri
         const languagesData = [
             { code: 'tr', name: 'Türkçe', flag: '🇹🇷' },
             { code: 'en', name: 'English', flag: '🇬🇧' },
@@ -430,15 +415,12 @@
             { id: 3, callsign: 'BAW178', airline: 'British Airways', route: 'LHR ➔ DXB', speed: 910, alt: 40000, lat: 51.4700, lon: -0.4543 },
             { id: 4, callsign: 'PGT321', airline: 'Pegasus', route: 'SAW ➔ BER', speed: 820, alt: 34000, lat: 40.9000, lon: 29.3000 },
             { id: 5, callsign: 'AFR116', airline: 'Air France', route: 'CDG ➔ MAD', speed: 860, alt: 37000, lat: 49.0097, lon: 2.5479 },
-            { id: 6, callsign: 'KLM123', airline: 'KLM Royal Dutch', route: 'AMS ➔ VIE', speed: 810, alt: 34000, lat: 52.3105, lon: 4.7683 },
-            { id: 7, callsign: 'RYR84C', airline: 'Ryanair', route: 'DUB ➔ BCN', speed: 780, alt: 32000, lat: 53.3498, lon: -6.2603 },
-            { id: 8, callsign: 'EZY88J', airline: 'EasyJet', route: 'MXP ➔ LGW', speed: 795, alt: 34000, lat: 45.4642, lon: 9.1900 }
+            { id: 6, callsign: 'KLM123', airline: 'KLM Royal Dutch', route: 'AMS ➔ VIE', speed: 810, alt: 34000, lat: 52.3105, lon: 4.7683 }
         ];
 
         let currentLang = 'tr';
         let mapInstance = null;
 
-        // Uygulama Çekirdek Mantığı
         const AppCore = {
             init() {
                 this.renderFlights(flightsData);
@@ -447,6 +429,7 @@
 
             renderFlights(data) {
                 const container = document.getElementById('flightCardsContainer');
+                if(!container) return;
                 container.innerHTML = '';
                 
                 data.forEach(f => {
@@ -455,11 +438,11 @@
                     card.id = 'flight-' + f.callsign;
                     card.innerHTML = `
                         <div class="flight-card-header">
-                            <span class="neon-text flight-callsign">${f.callsign}</span>
-                            <span style="font-size: 0.9rem; color: #9ca3af;">${f.speed} km/h</span>
+                            <span class="flight-callsign">${f.callsign}</span>
+                            <span style="font-size: 0.9rem; color: var(--text-muted);">${f.speed} km/h</span>
                         </div>
                         <div class="flight-details-text">${f.airline} | ${f.route}</div>
-                        <div style="font-size: 0.8rem; color: #6b7280; margin-top: 6px;">İrtifa: ${f.alt} ft</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">İrtifa: ${f.alt} ft</div>
                     `;
                     card.onclick = () => AppUI.showDetail(f);
                     container.appendChild(card);
@@ -476,12 +459,16 @@
             },
 
             updateStats(data) {
-                document.getElementById('statTotal').innerText = data.length;
-                if(data.length > 0) {
-                    const avgSpd = Math.round(data.reduce((acc, curr) => acc + curr.speed, 0) / data.length);
-                    document.getElementById('statSpeed').innerText = avgSpd + " km/h";
-                } else {
-                    document.getElementById('statSpeed').innerText = "0 km/h";
+                const totalEl = document.getElementById('statTotal');
+                const speedEl = document.getElementById('statSpeed');
+                if(totalEl) totalEl.innerText = data.length;
+                if(speedEl) {
+                    if(data.length > 0) {
+                        const avgSpd = Math.round(data.reduce((acc, curr) => acc + curr.speed, 0) / data.length);
+                        speedEl.innerText = avgSpd + " km/h";
+                    } else {
+                        speedEl.innerText = "0 km/h";
+                    }
                 }
             },
 
@@ -491,35 +478,39 @@
                 const btnMap = document.getElementById('tabMapBtn');
 
                 if (tab === 'map') {
-                    mapWrapper.classList.add('active');
-                    btnMap.classList.add('active');
-                    btnList.classList.remove('active');
+                    if(mapWrapper) mapWrapper.classList.add('active');
+                    if(btnMap) btnMap.classList.add('active');
+                    if(btnList) btnList.classList.remove('active');
                     this.initMap();
                 } else {
-                    mapWrapper.classList.remove('active');
-                    btnList.classList.add('active');
-                    btnMap.classList.remove('active');
+                    if(mapWrapper) mapWrapper.classList.remove('active');
+                    if(btnList) btnList.classList.add('active');
+                    if(btnMap) btnMap.classList.remove('active');
                 }
             },
 
             initMap() {
-                if (!mapInstance) {
-                    mapInstance = L.map('map').setView([48.5, 14.5], 5);
-                    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                        maxZoom: 19
-                    }).addTo(mapInstance);
+                setTimeout(() => {
+                    if (!mapInstance) {
+                        mapInstance = L.map('map').setView([48.5, 14.5], 5);
+                        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                            maxZoom: 19
+                        }).addTo(mapInstance);
 
-                    flightsData.forEach(f => {
-                        let planeIcon = L.divIcon({
-                            html: `<div style="color: #00d4ff; text-shadow: 0 0 8px #00d4ff; font-size: 24px;">✈️</div>`,
-                            className: 'neon-plane-marker'
+                        flightsData.forEach(f => {
+                            let planeIcon = L.divIcon({
+                                html: `<div style="font-size: 22px;">✈️</div>`,
+                                className: 'plane-marker'
+                            });
+                            L.marker([f.lat, f.lon], { icon: planeIcon })
+                                .addTo(mapInstance)
+                                .bindPopup(`<b>${f.callsign}</b><br>${f.airline}`)
+                                .on('click', () => AppUI.showDetail(f));
                         });
-                        L.marker([f.lat, f.lon], { icon: planeIcon })
-                            .addTo(mapInstance)
-                            .bindPopup(`<b>${f.callsign}</b><br>${f.airline}`)
-                            .on('click', () => AppUI.showDetail(f));
-                    });
-                }
+                    } else {
+                        mapInstance.invalidateSize();
+                    }
+                }, 100);
             },
 
             setLanguage(langCode) {
@@ -546,60 +537,70 @@
                     const targetCard = document.getElementById('flight-' + code);
                     if (targetCard) {
                         targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        targetCard.style.borderColor = 'var(--accent-neon)';
-                        targetCard.style.boxShadow = 'var(--neon-glow)';
+                        targetCard.style.borderColor = 'var(--accent-color)';
                         setTimeout(() => {
                             targetCard.style.borderColor = 'var(--border-color)';
-                            targetCard.style.boxShadow = 'none';
-                        }, 2500);
+                        }, 2000);
                     }
                 }, 150);
             }
         };
-
-        // Arayüz Moddal ve Etkileşim Yönetimi
-        const AppUI = {
+                const AppUI = {
             openSettings() {
-                document.getElementById('settings-modal').classList.add('active');
-                       closeSettings() {
-                document.getElementById('settings-modal').classList.remove('active');
+                const m = document.getElementById('settings-modal');
+                if(m) m.classList.add('active');
+            },
+            closeSettings() {
+                const m = document.getElementById('settings-modal');
+                if(m) m.classList.remove('active');
             },
             openLangModal() {
                 const container = document.getElementById('langListContainer');
-                container.innerHTML = '';
-                languagesData.forEach(l => {
-                    const item = document.createElement('div');
-                    item.className = 'lang-option-card';
-                    item.innerHTML = `<span style="font-size: 1.1rem; font-weight: bold;">${l.name}</span> <span style="font-size: 1.5rem;">${l.flag}</span>`;
-                    item.onclick = () => AppCore.setLanguage(l.code);
-                    container.appendChild(item);
-                });
-                document.getElementById('lang-modal').classList.add('active');
+                if(container) {
+                    container.innerHTML = '';
+                    languagesData.forEach(l => {
+                        const item = document.createElement('div');
+                        item.className = 'lang-option-card';
+                        item.innerHTML = `<span style="font-weight: bold;">${l.name}</span> <span style="font-size: 1.3rem;">${l.flag}</span>`;
+                        item.onclick = () => AppCore.setLanguage(l.code);
+                        container.appendChild(item);
+                    });
+                }
+                const m = document.getElementById('lang-modal');
+                if(m) m.classList.add('active');
             },
             closeLangModal() {
-                document.getElementById('lang-modal').classList.remove('active');
+                const m = document.getElementById('lang-modal');
+                if(m) m.classList.remove('active');
             },
             showDetail(f) {
                 const dict = i18nDict[currentLang] || i18nDict['tr'];
-                document.getElementById('detailTitle').innerText = f.callsign;
-                document.getElementById('detailContent').innerHTML = `
-                    <div class="detail-box">
-                        <p><strong>${dict.label_airline || 'Havayolu'}:</strong> ${f.airline}</p>
-                        <p><strong>${dict.label_route || 'Güzergah'}:</strong> ${f.route}</p>
-                        <p><strong>${dict.label_speed || 'Hız'}:</strong> ${f.speed} km/h</p>
-                        <p><strong>${dict.label_alt || 'İrtifa'}:</strong> ${f.alt} ft</p>
-                    </div>
-                    <button onclick="AppCore.jumpToCode('${f.callsign}')" class="action-button">${dict.btn_jump || 'Ana Sayfada Bu Koda Git'}</button>
-                `;
-                document.getElementById('detail-modal').classList.add('active');
+                const titleEl = document.getElementById('detailTitle');
+                const contentEl = document.getElementById('detailContent');
+                if(titleEl) titleEl.innerText = f.callsign;
+                if(contentEl) {
+                    contentEl.innerHTML = `
+                        <div class="detail-box">
+                            <p><strong>${dict.label_airline || 'Havayolu'}:</strong> ${f.airline}</p>
+                            <p><strong>${dict.label_route || 'Güzergah'}:</strong> ${f.route}</p>
+                            <p><strong>${dict.label_speed || 'Hız'}:</strong> ${f.speed} km/h</p>
+                            <p><strong>${dict.label_alt || 'İrtifa'}:</strong> ${f.alt} ft</p>
+                        </div>
+                        <button onclick="AppCore.jumpToCode('${f.callsign}')" class="action-button">${dict.btn_jump || 'Ana Sayfada Bu Koda Git'}</button>
+                    `;
+                }
+                const m = document.getElementById('detail-modal');
+                if(m) m.classList.add('active');
             },
             closeDetail() {
-                document.getElementById('detail-modal').classList.remove('active');
+                const m = document.getElementById('detail-modal');
+                if(m) m.classList.remove('active');
             }
         };
 
-        // Uygulamayı Başlat
-        AppCore.init();
+        document.addEventListener('DOMContentLoaded', () => {
+            AppCore.init();
+        });
     </script>
 </body>
 </html>
